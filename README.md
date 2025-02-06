@@ -2,8 +2,9 @@
 
 ## Team Members: 
 1. Durga Sritha Dongla - Front End
-2. Saranya Yadlapalli - Back End
-3. Sai Harshitha Baskar - Back End
+2. KJ Pressly - Front End
+3. Saranya Yadlapalli - Back End
+4. Sai Harshitha Baskar - Back End
 
 Project Description: 
 
