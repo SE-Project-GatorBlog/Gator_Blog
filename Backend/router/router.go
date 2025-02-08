@@ -12,8 +12,8 @@ func SetupRoutes(app *fiber.App) {
 	app.Post("/signin", controller.SignIn)
 	app.Post("/signup", controller.SignUp)
 
-	// app.Get("/", controller.BlogList)
-	// app.Post("/", controller.BlogCreate)
-	// app.Put("/", controller.BlogUpdate)
-	// app.Delete("/", controller.BlogDelete)
+	app.Get("/", controller.BlogList)
+	app.Post("/", controller.BlogCreate)
+	app.Put("/", controller.BlogUpdate)
+	app.Delete("/", controller.BlogDelete)
 }
