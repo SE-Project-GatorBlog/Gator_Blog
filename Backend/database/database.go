@@ -24,7 +24,7 @@ func ConnectDB() {
 	}
 	log.Println("DB Connection successful")
 
-	// db.AutoMigrate(new(model.Blog))
+	db.AutoMigrate(new(model.Blog))
 	db.AutoMigrate(new(model.User))
 
 	DBConn = db
