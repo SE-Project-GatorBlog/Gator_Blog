@@ -45,6 +45,7 @@ The objective of Sprint 1 was to set up the foundational structure of the Gator 
 - Created database models for Users and Blog Posts.
 
 ### Frontend Setup:
+- Implemented a Figma design for the frontend UI.
 - Did the initial setup of the React application and installed required libraries/dependencies.
 - Created the MainComponent and set up the routing paths.
 - Designed basic UI for user authentication.
