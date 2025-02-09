@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import gatorImage from '../../assets/images/SignUp_Gator.png';
+import gatorImage from '../../assets/images/ForgotPassword_Gator.png';
 
 const ForgotPassword = () => {
   const [isHovered, setIsHovered] = useState(false);

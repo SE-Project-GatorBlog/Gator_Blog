@@ -9,7 +9,7 @@ const SignUpForm = () => {
   
   const [formData, setFormData] = useState({
     email: '',
-    ufid: '',
+    username: '',
     password: '',
     verifyPassword: ''
   });
@@ -53,8 +53,8 @@ const SignUpForm = () => {
             <div className="relative transition-all duration-300 transform hover:scale-102">
               <input
                 type="text"
-                name="ufid"
-                placeholder="UFID"
+                name="username"
+                placeholder="Username"
                 className="w-full p-3 rounded bg-white border border-[#0021A5]/30 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0021A5] transition-all duration-300"
                 onChange={handleChange}
                 required
