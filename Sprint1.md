@@ -2,6 +2,7 @@
 
 ## Project Name: Gator Blog
 **Sprint Duration:**  01/17/2025 -  02/10/2025  
+
 **Team Members:**  
 - Durga Sritha Dongla - Front End  
 - KJ Pressly - Front End  
