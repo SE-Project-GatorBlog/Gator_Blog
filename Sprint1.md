@@ -58,6 +58,12 @@ The objective of Sprint 1 was to set up the foundational structure of the Gator 
 - Configured a local development environment.
 - Set up a version control system (GitHub).
 
+### Figma Designs:
+![Homepage Layout](images/Home_Page.png)  
+![Signup Page](images/Sign_Up_Page.png)  
+![Login Page](images/Login_page.png)  
+![ForgotPassword Page](images/Forgot_Password.png) 
+
 ---
 
 ## 4. Testing:
