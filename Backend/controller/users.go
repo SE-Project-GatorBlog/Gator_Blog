@@ -4,11 +4,27 @@ import (
 	"Gator_blog/database"
 	"Gator_blog/model"
 	"log"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
+const SecretKey = "your_secret_key"
+
+// Function to generate JWT token
+func generateJWT(email string) (string, error) {
+	claims := jwt.MapClaims{
+		"email": email,
+		"exp":   time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(SecretKey))
+}
+
+// SignIn function
 func SignIn(c *fiber.Ctx) error {
 	context := fiber.Map{
 		"statusText": "OK",
@@ -19,9 +35,9 @@ func SignIn(c *fiber.Ctx) error {
 
 	// Parse the user input from the request
 	if err := c.BodyParser(&user_record); err != nil {
-		log.Println("Error in parsing user record")
+		log.Println("Error parsing user record")
 		context["statusText"] = "error"
-		context["msg"] = "Error in parsing user record"
+		context["msg"] = "Invalid input"
 		return c.JSON(context)
 	}
 
@@ -30,9 +46,9 @@ func SignIn(c *fiber.Ctx) error {
 	result := database.DBConn.Where("email = ?", user_record.Email).First(&existingUser)
 
 	if result.Error != nil {
-		log.Println("Error while fetching user data from db or user not found")
+		log.Println("User not found")
 		context["statusText"] = "error"
-		context["msg"] = "Error while saving user data to db"
+		context["msg"] = "User not found"
 		return c.JSON(context)
 	}
 	// Compare the entered password with the stored hashed password
@@ -44,12 +60,22 @@ func SignIn(c *fiber.Ctx) error {
 		return c.JSON(context)
 	}
 
-	context["msg"] = "User record fetched successfully"
-	context["data"] = existingUser
+	// Generate JWT token
+	token, err := generateJWT(existingUser.Email)
+	if err != nil {
+		log.Println("Error generating token", err)
+		context["statusText"] = "error"
+		context["msg"] = "Error generating token"
+		return c.JSON(context)
+	}
+
+	context["msg"] = "Login successful"
+	context["token"] = token
 	c.Status(200)
 	return c.JSON(context)
 }
 
+// SignUp function
 func SignUp(c *fiber.Ctx) error {
 	context := fiber.Map{
 		"statusText": "OK",
@@ -62,7 +88,7 @@ func SignUp(c *fiber.Ctx) error {
 	if err := c.BodyParser(&user_record); err != nil {
 		log.Println("Error in parsing user record")
 		context["statusText"] = "error"
-		context["msg"] = "Error in parsing user record"
+		context["msg"] = "Invalid input"
 		return c.JSON(context)
 	}
 
@@ -71,10 +97,9 @@ func SignUp(c *fiber.Ctx) error {
 	result := database.DBConn.Where("email = ?", user_record.Email).First(&existingUser)
 
 	if result.Error == nil {
-		// If user exists with the same email, return an error
 		log.Println("Email already exists")
 		context["statusText"] = "error"
-		context["msg"] = "Email is already registered"
+		context["msg"] = "Email already registered"
 		return c.JSON(context)
 	}
 	result = database.DBConn.Where("username = ?", user_record.Username).First(&existingUser)
@@ -91,7 +116,7 @@ func SignUp(c *fiber.Ctx) error {
 	if err != nil {
 		log.Println("Error while hashing password", err)
 		context["statusText"] = "error"
-		context["msg"] = "Error while hashing password"
+		context["msg"] = "Error hashing password"
 		return c.JSON(context)
 	}
 
@@ -101,13 +126,23 @@ func SignUp(c *fiber.Ctx) error {
 	result = database.DBConn.Create(user_record)
 
 	if result.Error != nil {
-		log.Println(result.Error)
+		log.Println("Error saving user to db")
 		context["statusText"] = "error"
-		context["msg"] = "Error while saving user data to db"
+		context["msg"] = "Error saving user to db"
 		return c.JSON(context)
 	}
-	context["msg"] = "User record saved successfully"
-	context["data"] = user_record
+
+	// Generate JWT token
+	token, err := generateJWT(user_record.Email)
+	if err != nil {
+		log.Println("Error generating token", err)
+		context["statusText"] = "error"
+		context["msg"] = "Error generating token"
+		return c.JSON(context)
+	}
+
+	context["msg"] = "User registered successfully"
+	context["token"] = token
 	c.Status(201)
 	return c.JSON(context)
 }
