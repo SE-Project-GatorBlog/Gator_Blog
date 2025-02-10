@@ -22,8 +22,6 @@ The objective of Sprint 1 was to set up the foundational structure of the Gator 
 |-------------|-------------|--------------|
 | As a developer, I want to set up the backend environment and codebase | To ensure the project is structured properly | ✅ |
 | As a user, I want a homepage with essential features | To navigate and explore the blog | ✅ |
-| As a user, I want to sign up by providing a username, email, and password | To create an account | ✅ |
-| As a user, I want to sign in using my email and password | To access my account securely | ✅ |
 | As a user, I want to register through a secure API that stores my credentials safely | To protect personal data | ✅ |
 | As a user, I want to log in through a secure API that validates my credentials and returns a session/token | To stay authenticated | ✅ |
 | As a developer, I want to implement JWT authentication for Signup & Signin APIs | To enhance security and provide token-based authentication | ✅ |
@@ -44,6 +42,8 @@ The objective of Sprint 1 was to set up the foundational structure of the Gator 
 - Set up user authentication using OAuth/Email & Password.
 - Implemented REST API endpoints for RegisterUser, LoginUser APIs on blog posts.
 - Created database models for Users and Blog Posts.
+- Implemented JWT authentication: A JWT token is generated upon successful registration.
+- Passwords are hashed before storing in the database to enhance security.
 
 ### Frontend Setup:
 - Implemented a Figma design for the frontend UI.
