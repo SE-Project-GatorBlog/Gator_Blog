@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import gatorImage from '../../assets/images/SignUp_Gator.png';
+import { useAuth } from '../../contexts/AuthContext';
+import api from '../../utils/api';
 
 const LoginForm = () => {
     const navigate = useNavigate();
@@ -38,6 +40,8 @@ const LoginForm = () => {
         });
     };
 
+    const { login } = useAuth();
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validateForm()) return;
@@ -46,7 +50,7 @@ const LoginForm = () => {
         setError('');
 
         try {
-            const response = await fetch('http://localhost:8000/api/signin', {
+            const response = await api.fetch('http://localhost:8000/api/signin', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -60,8 +64,8 @@ const LoginForm = () => {
                 setError(data.msg);
                 return;
             }
-
-            localStorage.setItem('user', JSON.stringify(data.data));
+            login(data.token, data);
+            console.log(data);
             navigate('/dashboard');
 
         } catch (err) {
