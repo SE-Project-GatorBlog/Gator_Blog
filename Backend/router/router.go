@@ -9,11 +9,12 @@ import (
 // setup routing information
 func SetupRoutes(app *fiber.App) {
 
-	app.Post("/signin", controller.SignIn)
-	app.Post("/signup", controller.SignUp)
+	api := app.Group("/api")
+	api.Post("/signin", controller.SignIn)
+	api.Post("/signup", controller.SignUp)
 
-	app.Get("/", controller.BlogList)
-	app.Post("/", controller.BlogCreate)
-	app.Put("/", controller.BlogUpdate)
-	app.Delete("/", controller.BlogDelete)
+	api.Get("/", controller.BlogList)
+	api.Post("/", controller.BlogCreate)
+	api.Put("/", controller.BlogUpdate)
+	api.Delete("/", controller.BlogDelete)
 }
