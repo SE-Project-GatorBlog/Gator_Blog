@@ -61,7 +61,7 @@ The objective of Sprint 1 was to set up the foundational structure of the Gator 
 ### Figma Designs:
 ![Homepage Layout](images/Home_Page.png)  
 ![Signup Page](images/Sign_Up_Page.png)  
-![Login Page](images/Login_page.png)  
+![Login Page](images/Login_Page.png)  
 ![ForgotPassword Page](images/Forgot_Password.png) 
 
 ---
