@@ -26,6 +26,7 @@ The objective of Sprint 1 was to set up the foundational structure of the Gator 
 | As a user, I want to sign in using my email and password | To access my account securely | ✅ |
 | As a user, I want to register through a secure API that stores my credentials safely | To protect personal data | ✅ |
 | As a user, I want to log in through a secure API that validates my credentials and returns a session/token | To stay authenticated | ✅ |
+| As a developer, I want to implement JWT authentication for Signup & Signin APIs | To enhance security and provide token-based authentication | ✅ |
 | As a frontend developer, I want to set up the frontend environment and codebase | To build and test UI components efficiently | ✅ |
 | As a user, I want a secure and user-friendly signup page | To easily create an account | ✅ |
 | As a user, I want a secure and user-friendly login page | To easily access my account | ✅ |
