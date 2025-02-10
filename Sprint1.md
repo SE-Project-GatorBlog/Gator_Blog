@@ -31,7 +31,13 @@ The objective of Sprint 1 was to set up the foundational structure of the Gator 
 | As a developer, I want to set up a MySQL database connection using GORM | To efficiently manage data | ✅ |
 | As a user, I want to comment on blog posts | To engage with authors and other readers | ❌ |
 | As a user, I want to like blog posts | To show appreciation for good content | ❌ |
-| As an admin, I want to manage users and posts | To maintain content quality and enforce guidelines | ❌ |
+| As a user, I want to edit my blog posts after publishing | To correct mistakes or update content | ❌ |
+
+### 2.1 Reasons for Not Implementing Certain Features
+
+- **Commenting on Blog Posts:** This feature was deprioritized in Sprint 1 as the focus was on establishing core authentication and backend setup. It will be implemented in the next sprint.  
+- **Liking Blog Posts:** Implementing a like feature requires additional modifications to the database schema and was planned for a future sprint to maintain the sprint timeline.  
+- **Editing blog posts after publishing** Editing functionality requires implementing version control and additional backend logic, which were deprioritized for this sprint. 
 
 ---
 
