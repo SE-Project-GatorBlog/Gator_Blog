@@ -2,6 +2,7 @@ package router
 
 import (
 	"Gator_blog/controller"
+	"Gator_blog/middleware"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -13,8 +14,11 @@ func SetupRoutes(app *fiber.App) {
 	api.Post("/signin", controller.SignIn)
 	api.Post("/signup", controller.SignUp)
 
-	api.Get("/", controller.BlogList)
-	api.Post("/", controller.BlogCreate)
-	api.Put("/", controller.BlogUpdate)
-	api.Delete("/", controller.BlogDelete)
+	// Protect blog routes with JWT middleware
+	protected := api.Group("/", middleware.JWTMiddleware())
+
+	protected.Get("/", controller.BlogList)
+	protected.Post("/", controller.BlogCreate)
+	protected.Put("/", controller.BlogUpdate)
+	protected.Delete("/", controller.BlogDelete)
 }
