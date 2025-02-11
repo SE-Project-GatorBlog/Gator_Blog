@@ -20,7 +20,7 @@ This blog website is designed to be an inclusive digital space where UF students
   
 ### Workflow
 
-![Workflow Diagram](images/Gator_Blog_WorkFlow)
+![Workflow Diagram](images/Gator_Blog_WorkFlow.png)
 
 ## How to Run:
 
