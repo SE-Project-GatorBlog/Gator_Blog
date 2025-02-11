@@ -28,7 +28,7 @@ This blog website is designed to be an inclusive digital space where UF students
 - **Node.js** (v16.0.0 or higher)
 - **npm** (v7.0.0 or higher)
 
-## Implementation Steps:
+## Frontend Implementation Steps:
 
 ### 1. Set up the project
 ```bash
@@ -46,21 +46,8 @@ npm install react-router-dom lucide-react tailwindcss postcss autoprefixer
 npx tailwindcss init -p
 ```
 
-### 4. Create the necessary directories
+### 4. Start the Frontend Application
 ```bash
-mkdir -p src/components/{Login,SignUp,ForgotPassword}
-mkdir -p src/pages
-mkdir -p src/assets/images
+npm start
 ```
-
-### 5. Add routing configuration
-- Implement the `App.js` file with React Router setup
-- Create the page components that will render the forms
-
-### 6. Implement the components
-- Create `LoginForm.jsx`, `SignUpForm.jsx`, and `ForgotPassword.jsx`
-- Implement form validation and state management using React hooks
-- Add styling using Tailwind CSS classes
-
-### 7. Add image assets
-- Place the Gator mascot images in the `src/assets/images` directory
+## Backend Implementation Steps:
