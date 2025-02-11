@@ -21,6 +21,7 @@ The objective of Sprint 1 was to set up the foundational structure of the Gator 
 - [Backend](https://drive.google.com/file/d/1tCvaU9pqi-oNjlQk_R_mWCj3Ye4fwqIx/view?usp=sharing)
 - [Frontend](https://drive.google.com/file/d/199bBifRV6AD6nhttEP_KHXulvb8PjgNC/view?usp=drive_link)
 
+Link to the Repository: https://github.com/SE-Project-GatorBlog/Gator_Blog/
 ---
 
 ## 3. User Stories
