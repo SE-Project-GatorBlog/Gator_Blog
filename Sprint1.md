@@ -16,7 +16,14 @@ The objective of Sprint 1 was to set up the foundational structure of the Gator 
 
 ---
 
-## 2. User Stories
+## 2. Visual Demo Links
+
+- [Backend](https://drive.google.com/file/d/1tCvaU9pqi-oNjlQk_R_mWCj3Ye4fwqIx/view?usp=sharing)
+- [Frontend](https://drive.google.com/file/d/199bBifRV6AD6nhttEP_KHXulvb8PjgNC/view?usp=drive_link)
+
+---
+
+## 3. User Stories
 
 | User Stories | Explanation | Implemented |
 |-------------|-------------|--------------|
@@ -33,7 +40,7 @@ The objective of Sprint 1 was to set up the foundational structure of the Gator 
 | As a user, I want to like blog posts | To show appreciation for good content | ❌ |
 | As a user, I want to edit my blog posts after publishing | To correct mistakes or update content | ❌ |
 
-### 2.1 Reasons for Not Implementing Certain Features
+### 3.1 Reasons for Not Implementing Certain Features
 
 - **Commenting on Blog Posts:** This feature was deprioritized in Sprint 1 as the focus was on establishing core authentication and backend setup. It will be implemented in the next sprint.  
 - **Liking Blog Posts:** Implementing a like feature requires additional modifications to the database schema and was planned for a future sprint to maintain the sprint timeline.  
@@ -41,7 +48,7 @@ The objective of Sprint 1 was to set up the foundational structure of the Gator 
 
 ---
 
-## 3. Tasks Completed
+## 4. Tasks Completed
 ### Backend Setup:
 - Initialized the project with Go and MySQL.
 - Established DB Connection and API routing using Gorm frameworks.
@@ -73,28 +80,28 @@ The objective of Sprint 1 was to set up the foundational structure of the Gator 
 
 ---
 
-## 4. Testing:
+## 5. Testing:
 - Tested test-API using Postman and validated respective changes in DB.
 - Tested CRUD operations in DB by calling APIs through Postman.
 - Tested the User Interface by hosting on a localhost server.
 
 ---
 
-## 5. Challenges Faced
+## 6. Challenges Faced
 - Integration issues between frontend and backend APIs.
 - User authentication security concerns and OAuth implementation difficulties.
 - Database schema adjustments to accommodate additional fields.
 
 ---
 
-## 6. Lessons Learned
+## 7. Lessons Learned
 - Importance of defining clear API contracts early in the sprint.
 - Need for detailed documentation to ensure smooth collaboration.
 - Using test-driven development (TDD) helped identify issues early.
 
 ---
 
-## 7. Sprint Retrospective
+## 8. Sprint Retrospective
 ### What Went Well:
 - Successfully set up project structure and implemented core features.
 - Good team collaboration and task distribution.
@@ -107,7 +114,7 @@ The objective of Sprint 1 was to set up the foundational structure of the Gator 
 
 ---
 
-## 8. Next Steps
+## 9. Next Steps
 - Implement commenting and liking features.
 - Improve UI design and user experience.
 - Conduct usability testing and gather user feedback.
