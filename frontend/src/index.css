@@ -1,3 +1,85 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+/* Editor styles */
+[contenteditable="true"]:empty:before {
+    content: attr(data-placeholder);
+    color: #888;
+    font-style: italic;
+    position: absolute;
+  }
+  
+  [contenteditable="true"]:focus {
+    outline: none;
+  }
+  
+  [contenteditable="true"] ul {
+    list-style-type: disc;
+    margin-left: 1.5em;
+    padding-left: 1em;
+  }
+  
+  [contenteditable="true"] ol {
+    list-style-type: decimal;
+    margin-left: 1.5em;
+    padding-left: 1em;
+  }
+  
+  [contenteditable="true"] li {
+    margin-bottom: 0.5em;
+  }
+  
+  [contenteditable="true"] code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    background-color: #f0f0f0;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+  
+  [contenteditable="true"] h1 {
+    font-size: 1.8em;
+    font-weight: bold;
+    margin: 0.67em 0;
+  }
+  
+  [contenteditable="true"] h2 {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 0.83em 0;
+  }
+  
+  [contenteditable="true"] h3 {
+    font-size: 1.17em;
+    font-weight: bold;
+    margin: 1em 0;
+  }
+  
+  [contenteditable="true"] a {
+    color: #0066cc;
+    text-decoration: underline;
+  }
+  
+  [contenteditable="true"] hr {
+    border: none;
+    border-top: 1px solid #ccc;
+    margin: 1em 0;
+  }
+  
+  [contenteditable="true"] img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Ensure proper spacing between paragraphs */
+  [contenteditable="true"] p {
+    margin: 0.5em 0;
+  }
+  
+  /* Text alignment classes */
+  [contenteditable="true"] .align-left {
+    text-align: left;
+  }
+  [contenteditable="true"] .align-center {
+    text-align: center;
+  }
+  [contenteditable="true"] .align-right {
+    text-align: right;
+  }

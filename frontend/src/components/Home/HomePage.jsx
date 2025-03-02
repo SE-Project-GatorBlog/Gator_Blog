@@ -14,15 +14,34 @@ const HomePage = () => {
     navigate('/login');
   };
 
+  const handleNavigation = (page) => {
+    navigate(`/${page.toLowerCase()}`);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FA4616] via-[#0021A5] to-[#FA4616]">
       <nav className="bg-[#0021A5] p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <h1 className="text-3xl font-bold text-white">GATORBLOG</h1>
           <div className="space-x-6">
-            <button className="text-white hover:text-blue-200">HOME</button>
-            <button className="text-white hover:text-blue-200">POSTS</button>
-            <button className="text-white hover:text-blue-200">MY PROFILE</button>
+            <button 
+              className="text-white hover:text-blue-200 font-bold"
+              onClick={() => handleNavigation('home')}
+            >
+              HOME
+            </button>
+            <button 
+              className="text-white hover:text-blue-200"
+              onClick={() => handleNavigation('dashboard')}
+            >
+              POSTS
+            </button>
+            <button 
+              className="text-white hover:text-blue-200"
+              onClick={() => handleNavigation('profile')}
+            >
+              MY PROFILE
+            </button>
           </div>
         </div>
       </nav>
