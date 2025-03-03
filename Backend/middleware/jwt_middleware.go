@@ -34,8 +34,28 @@ func JWTMiddleware() fiber.Handler {
 				"msg":        "Unauthorized",
 			})
 		}
+		// Extract user email from token claims
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"statusText": "error",
+				"msg":        "Invalid token claims",
+			})
+		}
 
-		// Proceed with the request
+		email, ok := claims["email"].(string)
+		if !ok {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"statusText": "error",
+				"msg":        "Email not found in token",
+			})
+		}
+
+		// Store email in request context
+		c.Locals("userEmail", email)
+
+		log.Println("Authenticated user email:", email) // Debugging log
 		return c.Next()
+
 	}
 }
