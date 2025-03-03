@@ -17,7 +17,7 @@ func SetupRoutes(app *fiber.App) {
 	// Protect blog routes with JWT middleware
 	protected := api.Group("/", middleware.JWTMiddleware())
 
-	protected.Get("/", controller.BlogList)
+	protected.Get("/blogs", controller.BlogList)
 	protected.Post("/", controller.BlogCreate)
 	protected.Put("/", controller.BlogUpdate)
 	protected.Delete("/", controller.BlogDelete)
