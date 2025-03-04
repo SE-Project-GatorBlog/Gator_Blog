@@ -18,8 +18,8 @@ The goal of Sprint 2 was to enhance the functionality of the Gator Blog platform
 
 ## 2. Visual Demo Links
 
-- [Backend](https://drive.google.com/file/d/17cDwjARJE7OVud6uTvol504JOknqurgR/view?usp=share_link)
-- [Frontend](https://drive.google.com/file/d/1TGV5FhD9_p_Hwyxsn_xckJ3C5KD6OOxB/view?usp=share_link)
+- [Frontend](https://drive.google.com/file/d/17cDwjARJE7OVud6uTvol504JOknqurgR/view?usp=share_link)
+- [Backend](https://drive.google.com/file/d/1TGV5FhD9_p_Hwyxsn_xckJ3C5KD6OOxB/view?usp=share_link)
 - Link to the Repository: https://github.com/SE-Project-GatorBlog/Gator_Blog/
 ---
 
@@ -74,12 +74,6 @@ The goal of Sprint 2 was to enhance the functionality of the Gator Blog platform
 - Resolved API connection issues between frontend and backend.
 - Updated the code on a version control system (GitHub).
 
-### Figma Designs:
-![Homepage Layout](images/Home_Page.png)  
-![Signup Page](images/Sign_Up_Page.png)  
-![Login Page](images/Login_Page.png)  
-![ForgotPassword Page](images/Forgot_Password.png) 
-
 ---
 
 ## 5. Testing:
@@ -87,6 +81,81 @@ The goal of Sprint 2 was to enhance the functionality of the Gator Blog platform
 - Conducted UI testing for blog post management and user profile authentication using Cypress.
 - Validated authentication security for user-specific content access.
 - Debugged and resolved inconsistencies in API responses using mock databases.
+- 
+### 5.1 Backend Testing:
+#### Blog_test:
+The unit tests in `blog_test.go` focus on testing the Blog API functionality, ensuring that various scenarios related to fetching blog posts work correctly.
+
+##### Test Setup:
+- Uses an **in-memory SQLite database** to simulate a real database environment for testing.
+- Initializes test data, including a sample user and blog posts.
+- Implements middleware to set user authentication context.
+
+##### Test Cases:
+
+| **Test Case** | **Description** |
+|--------------|----------------|
+| **TestBlogListUnauthorized** | Ensures that an unauthenticated user gets an error when trying to fetch blogs. |
+| **TestBlogListEmpty** | Checks that a user with no blog posts gets an empty list response. |
+| **TestBlogListWithBlogs** | Verifies that a user with multiple blogs receives a list of their own blogs. |
+| **TestBlogListUserNotFound** | Ensures an error response if the requested user does not exist. |
+| **TestBlogListDatabaseError** | Simulates a database failure and checks if the API handles it gracefully. |
+| **TestBlogListUserSegregation** | Validates that users only see their own blogs and not other users' posts. |
+
+These tests ensure that the **blog fetching functionality** works correctly under different conditions, covering authentication, database integrity, and error handling.
+
+#### Users_test:
+The unit tests in `users_test.go` focus on testing the authentication functionality of the Gator Blog platform, ensuring that user registration (`SignUp`) and authentication (`SignIn`) work correctly under various conditions.
+
+##### Test Setup:
+- Uses an **in-memory SQLite database** to simulate a real database environment for testing.
+- Initializes the database with user data for authentication tests.
+- Configures API routes for signup and login.
+
+##### Test Cases:
+
+| **Test Case** | **Description** |
+|--------------|----------------|
+| **TestSignUpSuccess** | Ensures that a new user can successfully register and receive a valid token. |
+| **TestSignUpDuplicateEmail** | Validates that users cannot register with an email that is already taken. |
+| **TestSignUpDuplicateUsername** | Ensures that duplicate usernames are not allowed during registration. |
+| **TestSignUpInvalidJSON** | Tests handling of malformed JSON requests during signup. |
+| **TestSignInSuccess** | Verifies that an existing user can successfully log in and receive a token. |
+| **TestSignInUserNotFound** | Ensures an error response when a non-existent user attempts to log in. |
+| **TestSignInIncorrectPassword** | Validates that incorrect passwords return an authentication error. |
+| **TestSignInInvalidJSON** | Checks if the API properly handles malformed JSON requests during login. |
+| **TestSignInMissingFields** | Ensures that missing fields in login requests result in an appropriate error response. |
+| **TestJWTTokenValidation** | Validates the JWT authentication process, ensuring tokens are correctly generated and verified. |
+| **TestMalformedContentType** | Ensures that requests with incorrect content types are properly handled. |
+| **TestDatabaseErrorHandling** | Simulates database errors to test how the API handles failures during authentication. |
+
+These tests ensure the **robustness of authentication mechanisms**, preventing issues like duplicate accounts, incorrect logins, and handling edge cases efficiently.
+
+### 5.2 Frontend Testing:
+#### Using Cypress testing:
+The Cypress tests in `spec.cy.js` focus on testing the frontend functionality of the Gator Blog platform, ensuring that key user interface elements and authentication flows work correctly.
+
+##### Test Setup:
+- Uses **Cypress** for end-to-end testing of the frontend components.
+- Simulates user interactions such as form submissions, navigation, and authentication.
+- Validates UI behavior and API integration.
+
+##### Test Cases:
+
+| **Test Case** | **Description** |
+|--------------|----------------|
+| **TestLoginPage** | Ensures the login page loads correctly and allows users to sign in successfully. |
+| **TestSignUpPage** | Verifies that users can register successfully and validation errors are displayed for incorrect inputs. |
+| **TestDashboardPage** | Confirms that the dashboard loads correctly and displays user-specific content. |
+| **TestHomePage** | Validates that the homepage loads properly and blog posts are listed as expected. |
+| **TestForgotPasswordPage** | Ensures users can reset their passwords and receive a confirmation message. |
+| **TestCreateBlogPost** | Tests the ability to create a new blog post and validate input fields. |
+| **TestEditBlogPost** | Ensures that users can edit their blog posts and see updated content. |
+| **TestDeleteBlogPost** | Verifies that users can delete their blog posts and receive confirmation. |
+| **TestNavigation** | Checks that the navigation bar functions correctly, allowing users to move between pages. |
+| **TestLogout** | Ensures that users can log out and are redirected to the login page. |
+
+These tests ensure the **frontend UI functions smoothly**, validating both user interactions and API responses.
 
 ---
 
