@@ -83,7 +83,7 @@ The goal of Sprint 2 was to enhance the functionality of the Gator Blog platform
 - Debugged and resolved inconsistencies in API responses using mock databases.
   
 ### 5.1 Backend Testing:
-#### - Blog_test:
+#### Blog_test:
 The unit tests in `blog_test.go` focus on testing the Blog API functionality, ensuring that various scenarios related to fetching blog posts work correctly.
 
 #### Test Setup:
