@@ -77,6 +77,102 @@ The goal of Sprint 2 was to enhance the functionality of the Gator Blog platform
 
 ---
 
+# API Documentation
+
+## Authentication APIs
+
+### 1. Sign Up
+**Endpoint:** `POST /api/signup`  
+**Description:** Registers a new user.  
+**Request Body:**
+```json
+{
+  "username": "user123",
+  "email": "user@example.com",
+  "password": "securepassword"
+}
+```
+**Response:**
+- **201 Created** (Success)
+```json
+{
+  "statusText": "OK",
+  "msg": "User registered successfully",
+  "token": "jwt_token"
+}
+```
+- **400 Bad Request** (Invalid input, duplicate email/username)
+```json
+{
+  "statusText": "error",
+  "msg": "Email already registered"
+}
+```
+
+### 2. Sign In
+**Endpoint:** `POST /api/signin`  
+**Description:** Logs in a user and returns a JWT token.  
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "securepassword"
+}
+```
+**Response:**
+- **200 OK** (Success)
+```json
+{
+  "statusText": "OK",
+  "msg": "Login successful",
+  "token": "jwt_token"
+}
+```
+- **401 Unauthorized** (Incorrect credentials)
+```json
+{
+  "statusText": "error",
+  "msg": "Incorrect password"
+}
+```
+
+---
+
+## Blog APIs
+
+### 3. Get Blog List
+**Endpoint:** `GET /api/blogs`  
+**Description:** Fetches all blogs for the authenticated user.  
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+**Response:**
+- **200 OK** (Success)
+```json
+{
+  "statusText": "OK",
+  "msg": "Blog List",
+  "blogs": [
+    {
+      "id": 1,
+      "title": "My First Blog",
+      "content": "This is my first blog content...",
+      "user_id": 123
+    }
+  ]
+}
+```
+- **401 Unauthorized** (Missing/invalid token)
+```json
+{
+  "statusText": "error",
+  "msg": "Unauthorized"
+}
+```
+
+---
+
 ## 5. Testing:
 - Verified API responses using Postman for all CRUD operations.
 - Conducted UI testing for blog post management and user profile authentication using Cypress.
