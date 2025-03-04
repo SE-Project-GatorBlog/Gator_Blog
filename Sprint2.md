@@ -81,17 +81,17 @@ The goal of Sprint 2 was to enhance the functionality of the Gator Blog platform
 - Conducted UI testing for blog post management and user profile authentication using Cypress.
 - Validated authentication security for user-specific content access.
 - Debugged and resolved inconsistencies in API responses using mock databases.
-- 
+  
 ### 5.1 Backend Testing:
-#### Blog_test:
+#### - Blog_test:
 The unit tests in `blog_test.go` focus on testing the Blog API functionality, ensuring that various scenarios related to fetching blog posts work correctly.
 
-##### Test Setup:
+#### Test Setup:
 - Uses an **in-memory SQLite database** to simulate a real database environment for testing.
 - Initializes test data, including a sample user and blog posts.
 - Implements middleware to set user authentication context.
 
-##### Test Cases:
+#### Test Cases:
 
 | **Test Case** | **Description** |
 |--------------|----------------|
@@ -102,17 +102,17 @@ The unit tests in `blog_test.go` focus on testing the Blog API functionality, en
 | **TestBlogListDatabaseError** | Simulates a database failure and checks if the API handles it gracefully. |
 | **TestBlogListUserSegregation** | Validates that users only see their own blogs and not other users' posts. |
 
-These tests ensure that the **blog fetching functionality** works correctly under different conditions, covering authentication, database integrity, and error handling.
+These tests ensure that the blog fetching functionality works correctly under different conditions, covering authentication, database integrity, and error handling.
 
 #### Users_test:
 The unit tests in `users_test.go` focus on testing the authentication functionality of the Gator Blog platform, ensuring that user registration (`SignUp`) and authentication (`SignIn`) work correctly under various conditions.
 
-##### Test Setup:
+#### Test Setup:
 - Uses an **in-memory SQLite database** to simulate a real database environment for testing.
 - Initializes the database with user data for authentication tests.
 - Configures API routes for signup and login.
 
-##### Test Cases:
+#### Test Cases:
 
 | **Test Case** | **Description** |
 |--------------|----------------|
@@ -129,18 +129,19 @@ The unit tests in `users_test.go` focus on testing the authentication functional
 | **TestMalformedContentType** | Ensures that requests with incorrect content types are properly handled. |
 | **TestDatabaseErrorHandling** | Simulates database errors to test how the API handles failures during authentication. |
 
-These tests ensure the **robustness of authentication mechanisms**, preventing issues like duplicate accounts, incorrect logins, and handling edge cases efficiently.
+These tests ensure the robustness of authentication mechanisms, preventing issues like duplicate accounts, incorrect logins, and handling edge cases efficiently.
+___
 
 ### 5.2 Frontend Testing:
 #### Using Cypress testing:
 The Cypress tests in `spec.cy.js` focus on testing the frontend functionality of the Gator Blog platform, ensuring that key user interface elements and authentication flows work correctly.
 
-##### Test Setup:
+#### Test Setup:
 - Uses **Cypress** for end-to-end testing of the frontend components.
 - Simulates user interactions such as form submissions, navigation, and authentication.
 - Validates UI behavior and API integration.
 
-##### Test Cases:
+#### Test Cases:
 
 | **Test Case** | **Description** |
 |--------------|----------------|
@@ -155,7 +156,7 @@ The Cypress tests in `spec.cy.js` focus on testing the frontend functionality of
 | **TestNavigation** | Checks that the navigation bar functions correctly, allowing users to move between pages. |
 | **TestLogout** | Ensures that users can log out and are redirected to the login page. |
 
-These tests ensure the **frontend UI functions smoothly**, validating both user interactions and API responses.
+These tests ensure the frontend UI functions smoothly, validating both user interactions and API responses.
 
 ---
 
