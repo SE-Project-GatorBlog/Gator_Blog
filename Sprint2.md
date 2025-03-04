@@ -136,10 +136,6 @@ The goal of Sprint 2 was to enhance the functionality of the Gator Blog platform
 }
 ```
 
----
-
-## Blog APIs
-
 ### 3. Get Blog List
 **Endpoint:** `GET /api/blogs`  
 **Description:** Fetches all blogs for the authenticated user.  
