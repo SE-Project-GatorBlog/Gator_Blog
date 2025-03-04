@@ -18,7 +18,8 @@ The goal of Sprint 2 was to enhance the functionality of the Gator Blog platform
 
 ## 2. Visual Demo Links
 
-- [Frontend](https://drive.google.com/file/d/17cDwjARJE7OVud6uTvol504JOknqurgR/view?usp=share_link)
+- [Frontend Part 1](https://drive.google.com/file/d/17cDwjARJE7OVud6uTvol504JOknqurgR/view?usp=share_link)
+- [Frontend Part 2](https://drive.google.com/file/d/1f2F7-4MtmcWuADgPmJbWR4LDt2_Xa_a7/view?usp=share_link)
 - [Backend](https://drive.google.com/file/d/1TGV5FhD9_p_Hwyxsn_xckJ3C5KD6OOxB/view?usp=share_link)
 - Link to the Repository: https://github.com/SE-Project-GatorBlog/Gator_Blog/
 ---
