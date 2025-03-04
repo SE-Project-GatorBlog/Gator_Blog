@@ -1,7 +1,7 @@
-# Sprint 1 Documentation
+# Sprint 2 Documentation
 
 ## Project Name: Gator Blog
-**Sprint Duration:**  01/17/2025 -  02/10/2025  
+**Sprint Duration:**  02/10/2025 -  03/03/2025  
 
 **Team Members:**  
 - Durga Sritha Dongla - Front End  
@@ -18,16 +18,12 @@ The goal of Sprint 2 was to enhance the functionality of the Gator Blog platform
 
 ## 2. Visual Demo Links
 
-- [Backend](https://drive.google.com/file/d/1tCvaU9pqi-oNjlQk_R_mWCj3Ye4fwqIx/view?usp=sharing)
-- [Frontend](https://drive.google.com/file/d/199bBifRV6AD6nhttEP_KHXulvb8PjgNC/view?usp=drive_link)
+- [Backend](https://drive.google.com/file/d/17cDwjARJE7OVud6uTvol504JOknqurgR/view?usp=share_link)
+- [Frontend](https://drive.google.com/file/d/1TGV5FhD9_p_Hwyxsn_xckJ3C5KD6OOxB/view?usp=share_link)
 - Link to the Repository: https://github.com/SE-Project-GatorBlog/Gator_Blog/
 ---
 
 ## 3. User Stories
-
-| User Stories | Explanation | Implemented |
-|-------------|-------------|--------------|
-## 2. User Stories  
 
 | User Stories | Explanation | Implemented |
 |-------------|-------------|--------------|
