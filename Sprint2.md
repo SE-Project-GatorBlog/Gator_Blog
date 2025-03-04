@@ -158,6 +158,26 @@ The Cypress tests in `spec.cy.js` focus on testing the frontend functionality of
 
 These tests ensure the frontend UI functions smoothly, validating both user interactions and API responses.
 
+#### Frontend Unit Tests:
+The frontend unit tests focus on verifying the rendering of key UI components in the Gator Blog platform using **React Testing Library**. These tests ensure that essential buttons, images, and navigation elements are present on the homepage.
+
+#### Test Setup:
+- Uses React Testing Library for unit testing.
+- Wraps components in `MemoryRouter` to simulate routing behavior.
+- Verifies rendering of UI elements based on user expectations.
+
+#### Test Cases:
+
+| **Test Case** | **Description** |
+|--------------|----------------|
+| **TestStartBloggingButton** | Ensures the "START BLOGGING" button is rendered on the homepage. |
+| **TestHomeButton** | Verifies that the "HOME" button is present in the UI. |
+| **TestMyProfileButton** | Confirms that the "MY PROFILE" button is correctly displayed. |
+| **TestGatorImage** | Ensures that the Gator image is rendered properly. |
+| **TestPostsButton** | Checks that the "POSTS" button appears in the interface. |
+
+These tests help maintain UI consistency by ensuring critical elements are correctly displayed and accessible to users.
+
 ---
 
 ## 6. Challenges Faced
