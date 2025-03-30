@@ -178,13 +178,13 @@ const NewPost = () => {
           <h1 className="text-3xl font-bold text-white">GATORBLOG</h1>
           <div className="space-x-6">
             <button 
-              onClick={() => navigateTo('/dashboard')} 
+              onClick={() => navigateTo('/home')} 
               className="text-white hover:text-blue-200 font-medium px-2 py-1 rounded transition-colors"
             >
               HOME
             </button>
             <button 
-              onClick={() => navigateTo('/posts')} 
+              onClick={() => navigateTo('/dashboard')} 
               className="text-white hover:text-blue-200 font-medium px-2 py-1 rounded transition-colors"
             >
               POSTS

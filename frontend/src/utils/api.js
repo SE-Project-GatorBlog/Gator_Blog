@@ -1,14 +1,31 @@
+// utils/api.js
 const api = {
-    fetch: async (url, options = {}) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        options.headers = {
-          ...options.headers,
-          Authorization: token
-        };
-      }
-      return fetch(url, options);
+  fetch: async (url, options = {}) => {
+    // Get the token from localStorage
+    const token = localStorage.getItem('token');
+    
+    // Set default headers
+    const headers = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+    
+    // Add authorization header if token exists
+    if (token) {
+      headers['Authorization'] = token;
     }
-  };
-  
-  export default api;
+    
+    // Create the request options
+    const requestOptions = {
+      ...options,
+      headers,
+    };
+    
+    // Make the fetch request
+    const response = await fetch(url, requestOptions);
+    
+    return response;
+  }
+};
+
+export default api;

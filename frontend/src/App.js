@@ -6,6 +6,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import NewPostPage from './pages/NewPostPage';
 import HomePage from './pages/HomePage';
+import ProfilePage from './pages/ProfilePage';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -27,6 +28,11 @@ function App() {
          <Route path="/new-post" element={
            <ProtectedRoute>
              <NewPostPage />
+           </ProtectedRoute>
+         } />
+         <Route path="/profile" element={
+           <ProtectedRoute>
+             <ProfilePage />
            </ProtectedRoute>
          } />
        </Routes>
