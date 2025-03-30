@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import blogService from '../../utils/blogService';
 
 const NewPost = () => {
   const navigate = useNavigate();
@@ -49,14 +50,17 @@ const NewPost = () => {
       // Get the HTML content from the editor
       const content = editorRef.current.innerHTML;
       
-      console.log('Submitting post:', { 
-        title, 
-        content,
-        author: user?.username || 'Anonymous'
-      });
+      // Prepare blog data
+      const blogData = {
+        Title: title,
+        Post: content,
+        // UserId is handled by the backend based on the authenticated user
+      };
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Send to backend API
+      const response = await blogService.createBlog(blogData);
+      
+      console.log('Blog post created:', response);
       
       // Redirect to dashboard after successful post
       navigate('/dashboard');
@@ -68,6 +72,8 @@ const NewPost = () => {
     }
   };
 
+  // ... rest of your component remains the same
+  
   const navigateTo = (path) => {
     navigate(path);
   };

@@ -12,6 +12,12 @@ const blogService = {
         : `${BASE_URL}/blogs`;
       
       const response = await api.fetch(url);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.msg || 'Failed to fetch blogs');
+      }
+      
       return await response.json();
     } catch (error) {
       console.error('Error fetching blogs:', error);
@@ -23,6 +29,12 @@ const blogService = {
   getBlogById: async (id) => {
     try {
       const response = await api.fetch(`${BASE_URL}/blogs/${id}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.msg || `Failed to fetch blog with ID ${id}`);
+      }
+      
       return await response.json();
     } catch (error) {
       console.error(`Error fetching blog with ID ${id}:`, error);
@@ -37,6 +49,12 @@ const blogService = {
         method: 'POST',
         body: JSON.stringify(blogData)
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.msg || 'Failed to create blog');
+      }
+      
       return await response.json();
     } catch (error) {
       console.error('Error creating blog:', error);
@@ -51,6 +69,12 @@ const blogService = {
         method: 'PUT',
         body: JSON.stringify(blogData)
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.msg || `Failed to update blog with ID ${id}`);
+      }
+      
       return await response.json();
     } catch (error) {
       console.error(`Error updating blog with ID ${id}:`, error);
@@ -64,6 +88,12 @@ const blogService = {
       const response = await api.fetch(`${BASE_URL}/blogs/${id}`, {
         method: 'DELETE'
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.msg || `Failed to delete blog with ID ${id}`);
+      }
+      
       return await response.json();
     } catch (error) {
       console.error(`Error deleting blog with ID ${id}:`, error);
