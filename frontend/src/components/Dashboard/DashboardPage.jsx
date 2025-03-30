@@ -51,9 +51,24 @@ const Dashboard = () => {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <h1 className="text-3xl font-bold text-white">GATORBLOG</h1>
           <div className="space-x-6">
-            <button className="text-white hover:text-blue-200">HOME</button>
-            <button className="text-white hover:text-blue-200">POSTS</button>
-            <button className="text-white hover:text-blue-200">MY PROFILE</button>
+            <button 
+              onClick={() => navigate('/home')} 
+              className="text-white hover:text-blue-200"
+            >
+              HOME
+            </button>
+            <button 
+              onClick={() => navigate('/dashboard')} 
+              className="text-white hover:text-blue-200"
+            >
+              POSTS
+            </button>
+            <button 
+              onClick={() => navigate('/profile')} 
+              className="text-white hover:text-blue-200"
+            >
+              MY PROFILE
+            </button>
             <button 
               onClick={handleLogout} 
               className="text-white hover:text-red-200"
@@ -89,17 +104,6 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="border-b border-white/30 w-full mt-6"></div>
-        </div>
-
-        {/* New Post Button */}
-        <div className="flex justify-center my-10">
-          <button
-            onClick={handleNewPost}
-            className="bg-white/30 backdrop-blur-sm rounded-lg px-12 py-4 text-white font-bold text-2xl 
-            transform transition-all duration-300 hover:scale-105 hover:bg-white/40 shadow-lg"
-          >
-            NEW POST
-          </button>
         </div>
 
         {/* Posts */}
