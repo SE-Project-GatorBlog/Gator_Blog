@@ -16,7 +16,6 @@ const ProfilePage = () => {
   const [error, setError] = useState(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState({ show: false, postId: null });
   
-  // Use useCallback to memoize the fetchUserPosts function
   const fetchUserPosts = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -50,7 +49,6 @@ const ProfilePage = () => {
   }, [user]);
   
   useEffect(() => {
-    // In a real app, you would fetch the user's profile data from your backend
     if (user) {
       setUsername(user.username || 'Gator User');
       setEmailId(user.email || 'gator@ufl.edu');
@@ -61,7 +59,7 @@ const ProfilePage = () => {
     
     // Fetch user's posts
     fetchUserPosts();
-  }, [user, fetchUserPosts]); // Added fetchUserPosts as a dependency
+  }, [user, fetchUserPosts]); 
   
   const handleLogout = () => {
     logout();
@@ -78,7 +76,6 @@ const ProfilePage = () => {
       const reader = new FileReader();
       reader.onload = (e) => {
         setProfileImage(e.target.result);
-        // In a real app, you would upload this to your server
         // uploadProfileImage(file);
       };
       reader.readAsDataURL(file);
@@ -104,21 +101,38 @@ const ProfilePage = () => {
   const handleConfirmDelete = async () => {
     try {
       await blogService.deleteBlog(deleteConfirmation.postId);
-      
-      // Remove the deleted post from the local state
+    
       setUserPosts(userPosts.filter(post => post.id !== deleteConfirmation.postId));
-      
-      // Hide the confirmation dialog
+    
       setDeleteConfirmation({ show: false, postId: null });
     } catch (error) {
       console.error('Error deleting post:', error);
       alert('Failed to delete post. Please try again.');
     }
   };
-  
+
   // Function to safely render HTML content
   const createMarkup = (htmlContent) => {
     return { __html: htmlContent };
+  };
+
+  // Function to create a text preview without HTML tags
+  const createPreview = (htmlContent, maxLength = 150) => {
+    // Create a temporary div to strip HTML tags
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    const textContent = tempDiv.textContent || tempDiv.innerText || '';
+    
+    // Truncate the text to maxLength
+    if (textContent.length <= maxLength) {
+      return textContent;
+    }
+    
+    // Find the last space before maxLength
+    const lastSpace = textContent.substring(0, maxLength).lastIndexOf(' ');
+    const truncatedText = textContent.substring(0, lastSpace > 0 ? lastSpace : maxLength);
+    
+    return `${truncatedText}...`;
   };
 
   return (
@@ -247,9 +261,9 @@ const ProfilePage = () => {
         )}
 
         {/* Posts List */}
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {isLoading ? (
-            <div className="bg-white/90 rounded-lg p-6 text-center">
+            <div className="col-span-full bg-white/90 rounded-lg p-6 text-center">
               <div className="animate-pulse flex flex-col items-center">
                 <div className="h-8 bg-blue-200 rounded w-1/3 mb-4"></div>
                 <div className="h-4 bg-blue-100 rounded w-2/3 mb-2"></div>
@@ -258,7 +272,7 @@ const ProfilePage = () => {
               <p className="mt-4 text-blue-800">Loading your posts...</p>
             </div>
           ) : error ? (
-            <div className="bg-white/90 rounded-lg p-6 text-center">
+            <div className="col-span-full bg-white/90 rounded-lg p-6 text-center">
               <p className="text-red-500">{error}</p>
               <button 
                 onClick={fetchUserPosts} 
@@ -268,7 +282,7 @@ const ProfilePage = () => {
               </button>
             </div>
           ) : userPosts.length === 0 ? (
-            <div className="bg-white/90 rounded-lg p-6 text-center">
+            <div className="col-span-full bg-white/90 rounded-lg p-6 text-center">
               <p className="text-lg text-gray-600">You haven't created any posts yet.</p>
               <button
                 onClick={() => navigate('/new-post')}
@@ -279,47 +293,55 @@ const ProfilePage = () => {
             </div>
           ) : (
             userPosts.map((post) => (
-              <div key={post.id} className="bg-white/90 rounded-lg p-6 shadow-md">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 bg-blue-800 rounded-full"></div>
-                  <span className="font-medium">{post.username}</span>
-                  <span className="text-gray-500 text-sm">{post.date}</span>
+              <div key={post.id} className="bg-white/90 rounded-lg shadow-md overflow-hidden flex flex-col h-full">
+                {/* Post Card Header */}
+                <div className="p-4 bg-gray-50 border-b">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-800 rounded-full"></div>
+                    <span className="font-medium">{post.username}</span>
+                    <span className="text-gray-500 text-sm">{post.date}</span>
+                  </div>
                 </div>
                 
-                <h3 className="text-xl font-bold mb-1">{post.title}</h3>
-                <div 
-                  className="text-gray-700 mb-4 border-b border-gray-200 pb-4"
-                  dangerouslySetInnerHTML={createMarkup(post.content)}
-                ></div>
+                {/* Post Card Content */}
+                <div className="p-4 flex-grow">
+                  <h3 className="text-xl font-bold mb-2">{post.title}</h3>
+                  <p className="text-gray-700 mb-4 line-clamp-3">
+                    {createPreview(post.content)}
+                  </p>
+                </div>
                 
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-4">
-                    <div className="bg-gray-200 px-3 py-1 rounded-full text-sm">
-                      Likes: {post.likes}
+                {/* Post Card Footer */}
+                <div className="p-4 bg-gray-50 border-t">
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-3">
+                      <div className="bg-gray-200 px-2 py-1 rounded-full text-xs">
+                        Likes: {post.likes}
+                      </div>
+                      <div className="bg-gray-200 px-2 py-1 rounded-full text-xs">
+                        Comments: {post.comments}
+                      </div>
                     </div>
-                    <div className="bg-gray-200 px-3 py-1 rounded-full text-sm">
-                      Comments: {post.comments}
+                    <div className="flex space-x-2">
+                      <button 
+                        className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-600"
+                        onClick={() => handleViewPost(post.id)}
+                      >
+                        View
+                      </button>
+                      <button 
+                        className="bg-[#0021A5] text-white px-3 py-1 rounded-lg text-sm hover:bg-[#001B8C]"
+                        onClick={() => handleEditPost(post.id)}
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        className="bg-red-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-700"
+                        onClick={() => handleDeleteClick(post.id)}
+                      >
+                        Delete
+                      </button>
                     </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button 
-                      className="bg-blue-500 text-white px-4 py-1 rounded-lg text-sm hover:bg-blue-600"
-                      onClick={() => handleViewPost(post.id)}
-                    >
-                      View
-                    </button>
-                    <button 
-                      className="bg-[#0021A5] text-white px-4 py-1 rounded-lg text-sm hover:bg-[#001B8C]"
-                      onClick={() => handleEditPost(post.id)}
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      className="bg-red-600 text-white px-4 py-1 rounded-lg text-sm hover:bg-red-700"
-                      onClick={() => handleDeleteClick(post.id)}
-                    >
-                      Delete
-                    </button>
                   </div>
                 </div>
               </div>

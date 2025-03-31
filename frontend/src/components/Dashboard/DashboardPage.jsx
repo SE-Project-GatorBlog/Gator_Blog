@@ -12,12 +12,10 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState({ show: false, postId: null });
-
-  // Using useCallback to memoize the fetchPosts function
   const fetchPosts = useCallback(async (titleFilter = '') => {
     setIsLoading(true);
     try {
-      // This should fetch ALL posts regardless of user
+
       const data = await blogService.getAllBlogs(titleFilter);
       
       // Process blog data

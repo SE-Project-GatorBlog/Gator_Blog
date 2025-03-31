@@ -10,15 +10,9 @@ const api = {
       ...options.headers,
     };
     
-    // Add authorization header if token exists
-    // The API expects header name "Authorization" with the token value
     if (token) {
-      // Your API documentation specifies "Authorisation - token"
-      // But standard practice is "Authorization: Bearer token" or just "Authorization: token"
-      // Try both approaches
+
       headers['Authorization'] = token;
-      
-      // Some APIs expect "Authorisation" (British spelling)
       headers['Authorisation'] = token;
     }
     
@@ -37,8 +31,7 @@ const api = {
     // Debug logging
     console.log(`API Request: ${requestOptions.method} ${url}`);
     console.log('Headers:', JSON.stringify(headers, null, 2));
-    
-    // Make the fetch request
+
     const response = await fetch(url, requestOptions);
     
     // Debug logging for response
@@ -46,7 +39,7 @@ const api = {
     
     if (response.status === 401) {
       localStorage.removeItem('token');
-      // Only redirect if we're in a browser environment
+
       if (typeof window !== 'undefined') {
         window.location.href = '/login';
       }
