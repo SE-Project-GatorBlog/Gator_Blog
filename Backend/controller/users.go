@@ -3,12 +3,15 @@ package controller
 import (
 	"Gator_blog/database"
 	"Gator_blog/model"
+	"Gator_blog/utils"
+	"fmt"
 	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/exp/rand"
 )
 
 const SecretKey = "your_secret_key"
@@ -122,6 +125,7 @@ func SignUp(c *fiber.Ctx) error {
 
 	// Update the user_record with the hashed password
 	user_record.Password = string(hashedPassword)
+	user_record.ResetCodeExpiry = time.Now()
 	// If email does not exist, proceed to create the new user
 	result = database.DBConn.Create(user_record)
 
@@ -145,4 +149,87 @@ func SignUp(c *fiber.Ctx) error {
 	context["token"] = token
 	c.Status(201)
 	return c.JSON(context)
+}
+
+func RequestResetCode(c *fiber.Ctx) error {
+	type Request struct {
+		Email string `json:"email"`
+	}
+	var req Request
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"msg": "Invalid request"})
+	}
+
+	var user model.User
+	result := database.DBConn.Where("email = ?", req.Email).First(&user)
+	if result.Error != nil {
+		return c.Status(404).JSON(fiber.Map{"msg": "User not found"})
+	}
+
+	code := fmt.Sprintf("%06d", rand.Intn(1000000))
+	user.ResetCode = code
+	user.ResetCodeExpiry = time.Now().Add(10 * time.Minute)
+
+	database.DBConn.Save(&user)
+
+	err := utils.SendResetCodeEmail(user.Email, code)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"msg": "Failed to send email"})
+	}
+
+	return c.JSON(fiber.Map{"msg": "Verification code sent"})
+}
+
+func VerifyResetCode(c *fiber.Ctx) error {
+	type Request struct {
+		Email string `json:"email"`
+		Code  string `json:"code"`
+	}
+	var req Request
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"msg": "Invalid request"})
+	}
+
+	var user model.User
+	result := database.DBConn.Where("email = ?", req.Email).First(&user)
+	if result.Error != nil {
+		return c.Status(404).JSON(fiber.Map{"msg": "User not found"})
+	}
+
+	if user.ResetCode != req.Code || time.Now().After(user.ResetCodeExpiry) {
+		return c.Status(401).JSON(fiber.Map{"msg": "Invalid or expired code"})
+	}
+
+	// Clear the reset code after successful verification
+	user.ResetCode = ""
+	database.DBConn.Save(&user)
+
+	return c.JSON(fiber.Map{"msg": "Code verified. Proceed to reset password."})
+}
+
+func ResetPasswordWithEmail(c *fiber.Ctx) error {
+	type Request struct {
+		Email       string `json:"email"`
+		NewPassword string `json:"new_password"`
+	}
+	var req Request
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"msg": "Invalid request"})
+	}
+
+	var user model.User
+	result := database.DBConn.Where("email = ?", req.Email).First(&user)
+	if result.Error != nil {
+		return c.Status(404).JSON(fiber.Map{"msg": "User not found"})
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"msg": "Error hashing password"})
+	}
+
+	user.Password = string(hashedPassword)
+	database.DBConn.Save(&user)
+
+	return c.JSON(fiber.Map{"msg": "Password updated successfully"})
 }
