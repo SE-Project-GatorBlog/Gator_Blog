@@ -264,66 +264,65 @@ const Dashboard = () => {
             </div>
           ) : (
             posts.map((post) => (
-              <div key={post.id} className="bg-white/90 rounded-lg p-6 shadow-md cursor-pointer hover:shadow-lg transition-shadow">
-                <div 
-                  className="post-content"
-                  onClick={() => navigate(`/post/${post.id}`)}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 bg-blue-800 rounded-full"></div>
-                    <span className="font-medium">{post.username}</span>
-                    <div className="flex flex-col">
-                      <span className="text-gray-500 text-sm">Created: {post.date}</span>
-                      {post.date !== post.updatedDate && 
-                        <span className="text-gray-500 text-sm">Updated: {post.updatedDate}</span>
-                      }
-                    </div>
+            <div 
+              key={post.id} 
+              className="bg-white/90 rounded-lg p-6 shadow-md cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => navigate(`/post/${post.id}`)}>
+              <div className="post-content">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 bg-blue-800 rounded-full"></div>
+                  <span className="font-medium">{post.username}</span>
+                  <div className="flex flex-col">
+                    <span className="text-gray-500 text-sm">Created: {post.date}</span>
+                    {post.date !== post.updatedDate && 
+                      <span className="text-gray-500 text-sm">Updated: {post.updatedDate}</span>
+                    }
                   </div>
-                  
-                  <h3 className="text-xl font-bold mb-1">{post.title}</h3>
-                  <div 
-                    className="text-gray-700 mb-4 border-b border-gray-200 pb-4 line-clamp-3"
-                    dangerouslySetInnerHTML={createMarkup(post.content)}
-                  ></div>
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-4">
-                    <div className="bg-gray-200 px-3 py-1 rounded-full text-sm">
-                      Likes: {post.likes}
-                    </div>
-                    <div className="bg-gray-200 px-3 py-1 rounded-full text-sm">
-                      Comments: {post.comments}
-                    </div>
-                  </div>
-                  
-                  {/* Edit and Delete Buttons - only shown if user is the author */}
-                  {user && user.id === post.authorId && (
-                    <div className="flex space-x-2">
-                      <button 
-                        className="bg-[#0021A5] text-white px-4 py-1 rounded-lg text-sm hover:bg-[#001B8C]"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditPost(post.id, post.authorId);
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        className="bg-red-600 text-white px-4 py-1 rounded-lg text-sm hover:bg-red-700"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteClick(post.id, post.authorId);
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <h3 className="text-xl font-bold mb-1">{post.title}</h3>
+                <div 
+                  className="text-gray-700 mb-4 border-b border-gray-200 pb-4 line-clamp-3"
+                  dangerouslySetInnerHTML={createMarkup(post.content)}
+                ></div>
               </div>
-            ))
-          )}
+              
+              <div className="flex items-center justify-between">
+                <div className="flex gap-4">
+                  <div className="bg-gray-200 px-3 py-1 rounded-full text-sm">
+                    Likes: {post.likes}
+                  </div>
+                  <div className="bg-gray-200 px-3 py-1 rounded-full text-sm">
+                    Comments: {post.comments}
+                  </div>
+                </div>
+                
+                {/* Edit and Delete Buttons - only shown if user is the author */}
+                {user && user.id === post.authorId && (
+                  <div className="flex space-x-2">
+                    <button 
+                      className="bg-[#0021A5] text-white px-4 py-1 rounded-lg text-sm hover:bg-[#001B8C]"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent triggering the parent onClick
+                        handleEditPost(post.id, post.authorId);
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      className="bg-red-600 text-white px-4 py-1 rounded-lg text-sm hover:bg-red-700"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent triggering the parent onClick
+                        handleDeleteClick(post.id, post.authorId);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )))}
         </div>
       </div>
     </div>

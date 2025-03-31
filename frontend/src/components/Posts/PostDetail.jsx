@@ -15,41 +15,53 @@ const PostDetailPage = () => {
     const fetchPost = async () => {
       setIsLoading(true);
       try {
-        // Fetch the specific post by ID
-        const response = await blogService.getBlogById(id);
+        console.log(`Attempting to fetch post with ID: ${id}`);
         
-        // Check if the response contains a blog property
-        if (response && response.blog) {
-          const blog = response.blog;
+        // WORKAROUND: Instead of using the problematic getBlogById endpoint,
+        // we'll fetch all blogs and filter for the one we want
+        const response = await blogService.getAllBlogs();
+        console.log('Received response from getAllBlogs:', response);
+        
+        if (response && response.blogs && Array.isArray(response.blogs)) {
+          // Find the blog with the matching ID
+          const blog = response.blogs.find(blog => blog.ID === parseInt(id) || blog.ID === id);
           
-          // Format the post data, handling potential missing fields
-          setPost({
-            id: blog.ID,
-            username: blog.Author || 'Anonymous User', // Fallback if Author is missing
-            date: new Date(blog.created_at || blog.CreatedAt).toLocaleString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            }),
-            updatedDate: new Date(blog.updated_at || blog.UpdatedAt).toLocaleString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            }),
-            title: blog.Title,
-            content: blog.Post,
-            likes: blog.Likes || 0, // Default to 0 if Likes is missing
-            comments: blog.Comments || 0, // Default to 0 if Comments is missing
-            authorId: blog.user_id || blog.AuthorID,
-            createdAt: blog.created_at || blog.CreatedAt,
-            updatedAt: blog.updated_at || blog.UpdatedAt
-          });
+          if (blog) {
+            console.log('Found matching blog:', blog);
+            
+            // Format the post data
+            setPost({
+              id: blog.ID,
+              username: blog.Author || 'Anonymous User',
+              date: new Date(blog.created_at || blog.CreatedAt).toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              }),
+              updatedDate: new Date(blog.updated_at || blog.UpdatedAt).toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              }),
+              title: blog.Title,
+              content: blog.Post,
+              likes: blog.Likes || 0,
+              comments: blog.Comments || 0,
+              authorId: blog.user_id || blog.AuthorID,
+              createdAt: blog.created_at || blog.CreatedAt,
+              updatedAt: blog.updated_at || blog.UpdatedAt
+            });
+          } else {
+            console.error(`Blog with ID ${id} not found in the response`);
+            setError(`Post with ID ${id} not found`);
+          }
         } else {
-          setError('Post not found');
+          console.error('Invalid response format:', response);
+          setError('Invalid response format from the server');
         }
       } catch (err) {
         console.error('Error fetching post:', err);
@@ -69,6 +81,17 @@ const PostDetailPage = () => {
   
   const handleBack = () => {
     navigate('/dashboard');
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm('Are you sure you want to delete this post?')) {
+      try {
+        await blogService.deleteBlog(post.id);
+        navigate('/dashboard');
+      } catch (err) {
+        alert(`Failed to delete post: ${err.message}`);
+      }
+    }
   };
   
   return (
@@ -169,14 +192,7 @@ const PostDetailPage = () => {
                   </button>
                   <button 
                     className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700"
-                    onClick={() => {
-                      if (window.confirm('Are you sure you want to delete this post?')) {
-                        // Call delete function and redirect to dashboard
-                        blogService.deleteBlog(post.id)
-                          .then(() => navigate('/dashboard'))
-                          .catch(err => alert('Failed to delete post'));
-                      }
-                    }}
+                    onClick={handleDelete}
                   >
                     Delete
                   </button>
