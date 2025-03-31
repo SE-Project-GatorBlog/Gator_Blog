@@ -21,6 +21,7 @@ func SetupRoutes(app *fiber.App) {
 	protected := api.Group("/", middleware.JWTMiddleware())
 
 	protected.Get("/blogs", controller.BlogList)
+	protected.Get("/blogs/:id", controller.BlogFetch)
 	protected.Post("/blogs", controller.BlogCreate)
 	protected.Put("/blogs/:id", controller.BlogUpdate)
 	protected.Delete("/blogs/:id", controller.BlogDelete)
