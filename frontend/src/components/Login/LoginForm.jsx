@@ -59,17 +59,14 @@ const LoginForm = () => {
             });
 
             const data = await response.json();
-
             if (data.statusText === 'error') {
                 setError(data.msg);
                 return;
-            }
+            }else{
             login(data.token, data);
-            console.log(data);
             navigate('/dashboard');
+            }
 
-        } catch (err) {
-            setError('Failed to connect to the server. Please try again.');
         } finally {
             setIsLoading(false);
         }

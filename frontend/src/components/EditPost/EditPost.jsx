@@ -1,15 +1,49 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import blogService from '../../utils/blogService';
 
-const NewPost = () => {
+const EditPost = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  // Remove the unused user variable
+  const { } = useAuth(); 
   const [title, setTitle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const editorRef = useRef(null);
+  
+  // Keep this state because it's used in the editor's focus/blur events
   const [editorHasFocus, setEditorHasFocus] = useState(false);
+
+  // Use useCallback to memoize the fetchPost function
+  const fetchPost = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await blogService.getBlogById(id);
+      
+      if (response.blog) {
+        setTitle(response.blog.Title);
+        // Set the HTML content to the editor
+        if (editorRef.current) {
+          editorRef.current.innerHTML = response.blog.Post;
+        }
+      } else {
+        setError('Post not found');
+      }
+    } catch (err) {
+      console.error('Error fetching post:', err);
+      setError('Failed to load post. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    // Fetch the post data when component mounts
+    fetchPost();
+  }, [fetchPost]); // Added fetchPost as a dependency
 
   useEffect(() => {
     // Set placeholder text in the editor
@@ -38,8 +72,6 @@ const NewPost = () => {
     };
   }, []);
 
-  // Update the handleSubmit function in the NewPost component
-
   const handleSubmit = async () => {
     if (!title.trim() || !editorRef.current.textContent.trim()) {
       alert('Please add both a title and content to your post');
@@ -52,26 +84,29 @@ const NewPost = () => {
       // Get the HTML content from the editor
       const content = editorRef.current.innerHTML;
       
-      // Create the blog data object with title and content
+      // Prepare blog data for update
       const blogData = {
         Title: title,
-        Post: content
-        // The backend will associate this with the current user via JWT token
+        Post: content,
       };
       
-      // Submit the blog post
-      const response = await blogService.createBlog(blogData);
+      // Send update to backend API
+      const response = await blogService.updateBlog(id, blogData);
       
-      console.log('Post created successfully:', response);
+      console.log('Blog post updated:', response);
       
-      // Redirect to dashboard after successful post
-      navigate('/dashboard');
+      // Redirect back to where user came from
+      navigate(-1);
     } catch (error) {
-      console.error('Error creating post:', error);
-      alert('Failed to create post. Please try again.');
+      console.error('Error updating post:', error);
+      alert('Failed to update post. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleCancel = () => {
+    navigate(-1); // Go back to the previous page
   };
 
   const navigateTo = (path) => {
@@ -106,13 +141,11 @@ const NewPost = () => {
   
   // Fixed list handling
   const handleUnorderedList = () => {
-    // Focus first to ensure command works properly
     editorRef.current.focus();
     execCommand('insertUnorderedList');
   };
   
   const handleOrderedList = () => {
-    // Focus first to ensure command works properly
     editorRef.current.focus();
     execCommand('insertOrderedList');
   };
@@ -124,12 +157,10 @@ const NewPost = () => {
   };
   
   const handleInsertImage = () => {
-    // Create a file input element
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
     
-    // Handle the file selection
     fileInput.onchange = (e) => {
       const file = e.target.files[0];
       if (file) {
@@ -142,7 +173,6 @@ const NewPost = () => {
       }
     };
     
-    // Trigger the file selection dialog
     fileInput.click();
   };
   
@@ -164,17 +194,54 @@ const NewPost = () => {
       codeElement.style.borderRadius = '3px';
       
       try {
-        // Store the selected text in the code element
         range.surroundContents(codeElement);
       } catch (e) {
         console.error('Error inserting code block:', e);
-        // Alternative approach if surroundContents fails
         const selectedText = range.toString();
         const codeHTML = `<code style="font-family: monospace; background-color: #f0f0f0; padding: 2px 4px; border-radius: 3px;">${selectedText}</code>`;
         execCommand('insertHTML', codeHTML);
       }
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#FA4616] via-[#0021A5] to-[#FA4616]">
+        <div className="bg-white/80 p-8 rounded-lg shadow-xl">
+          <div className="animate-pulse flex flex-col items-center">
+            <div className="h-8 bg-blue-200 rounded w-1/3 mb-4"></div>
+            <div className="h-4 bg-blue-100 rounded w-2/3 mb-2"></div>
+            <div className="h-4 bg-blue-100 rounded w-1/2"></div>
+          </div>
+          <p className="mt-4 text-blue-800 text-center">Loading post...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#FA4616] via-[#0021A5] to-[#FA4616]">
+        <div className="bg-white/80 p-8 rounded-lg shadow-xl">
+          <p className="text-red-500 text-center">{error}</p>
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="bg-[#0021A5] text-white px-4 py-2 rounded-lg mx-2"
+            >
+              Go to Dashboard
+            </button>
+            <button
+              onClick={() => fetchPost()}
+              className="bg-[#FA4616] text-white px-4 py-2 rounded-lg mx-2"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FA4616] via-[#0021A5] to-[#FA4616]">
@@ -208,8 +275,8 @@ const NewPost = () => {
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100">
           <div className="p-4 bg-[#0021A5]/10 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-[#0021A5]">Create New Post</h2>
-            <p className="text-gray-600 text-sm">Share your thoughts with your fellow Gators</p>
+            <h2 className="text-xl font-semibold text-[#0021A5]">Edit Post</h2>
+            <p className="text-gray-600 text-sm">Update your post</p>
           </div>
           
           {/* Post Editor */}
@@ -350,8 +417,14 @@ const NewPost = () => {
           </div>
         </div>
         
-        {/* Post Button */}
-        <div className="flex justify-center">
+        {/* Update and Cancel Buttons */}
+        <div className="flex justify-center space-x-4">
+          <button
+            onClick={handleCancel}
+            className="bg-gray-300 hover:bg-gray-400 text-gray-800 text-lg font-bold py-3 px-12 rounded-lg transform transition-all duration-300 hover:scale-105 shadow-lg"
+          >
+            Cancel
+          </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
@@ -359,24 +432,12 @@ const NewPost = () => {
               isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
-            {isSubmitting ? 'Posting...' : 'POST'}
+            {isSubmitting ? 'Updating...' : 'Update Post'}
           </button>
-        </div>
-        
-        {/* Tips section */}
-        <div className="bg-white/80 backdrop-blur-sm p-4 rounded-lg shadow-md">
-          <h3 className="text-[#0021A5] font-bold mb-2">Tips for a Great Post:</h3>
-          <ul className="text-gray-700 text-sm space-y-1 pl-4">
-            <li>• Use headings to organize your content</li>
-            <li>• Add images to make your post more engaging</li>
-            <li>• Format important points in <strong>bold</strong> or <em>italic</em></li>
-            <li>• Use bullet points for easy scanning</li>
-            <li>• Keep paragraphs short and focused</li>
-          </ul>
         </div>
       </div>
     </div>
   );
 };
 
-export default NewPost;
+export default EditPost;

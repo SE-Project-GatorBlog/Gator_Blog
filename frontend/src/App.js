@@ -5,6 +5,8 @@ import SignUpPage from './pages/SignUpPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import NewPostPage from './pages/NewPostPage';
+import EditPostPage from './pages/EditPostPage';
+import PostDetailPage from './pages/PostDetailPage'; // Import the new Post Detail page
 import HomePage from './pages/HomePage';
 import ProfilePage from './pages/ProfilePage';
 import { AuthProvider } from './contexts/AuthContext';
@@ -28,6 +30,16 @@ function App() {
          <Route path="/new-post" element={
            <ProtectedRoute>
              <NewPostPage />
+           </ProtectedRoute>
+         } />
+         <Route path="/edit-post/:id" element={
+           <ProtectedRoute>
+             <EditPostPage />
+           </ProtectedRoute>
+         } />
+         <Route path="/post/:id" element={ // Add the post detail route with ID parameter
+           <ProtectedRoute>
+             <PostDetailPage />
            </ProtectedRoute>
          } />
          <Route path="/profile" element={
