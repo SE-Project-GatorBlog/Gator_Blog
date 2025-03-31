@@ -195,7 +195,6 @@ func VerifyResetCode(c *fiber.Ctx) error {
 	if result.Error != nil {
 		return c.Status(404).JSON(fiber.Map{"msg": "User not found"})
 	}
-
 	if user.ResetCode != req.Code || time.Now().After(user.ResetCodeExpiry) {
 		return c.Status(401).JSON(fiber.Map{"msg": "Invalid or expired code"})
 	}
