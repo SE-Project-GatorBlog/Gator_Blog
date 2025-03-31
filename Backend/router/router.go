@@ -13,6 +13,10 @@ func SetupRoutes(app *fiber.App) {
 	api := app.Group("/api")
 	api.Post("/signin", controller.SignIn)
 	api.Post("/signup", controller.SignUp)
+	api.Post("/request-reset-code", controller.RequestResetCode)
+	api.Post("/verify-reset-code", controller.VerifyResetCode)
+	api.Post("/reset-password", controller.ResetPasswordWithEmail)
+
 
 	// Protect blog routes with JWT middleware
 	protected := api.Group("/", middleware.JWTMiddleware())
