@@ -14,10 +14,6 @@ const HomePage = () => {
     navigate('/login');
   };
 
-  const handleNavigation = (page) => {
-    navigate(`/${page.toLowerCase()}`);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FA4616] via-[#0021A5] to-[#FA4616]">
       <nav className="bg-[#0021A5] p-4">
@@ -26,19 +22,19 @@ const HomePage = () => {
           <div className="space-x-6">
             <button 
               className="text-white hover:text-blue-200 font-bold"
-              onClick={() => handleNavigation('home')}
+              onClick={() => navigate('/home')}
             >
               HOME
             </button>
             <button 
               className="text-white hover:text-blue-200"
-              onClick={() => handleNavigation('dashboard')}
+              onClick={() => navigate('/dashboard')}
             >
               POSTS
             </button>
             <button 
               className="text-white hover:text-blue-200"
-              onClick={() => handleNavigation('profile')}
+              onClick={() => navigate('/profile')}
             >
               MY PROFILE
             </button>
