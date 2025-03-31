@@ -37,8 +37,6 @@ const blogService = {
   // Get a single blog by ID
   getBlogById: async (id) => {
     try {
-      // The backend API expects a GET request to /api/blogs/blog_id 
-      // This is the same endpoint used for PUT and DELETE, but with a different method
       const response = await api.fetch(`${BASE_URL}/blogs/${id}`, {
         method: 'GET'
       });
@@ -148,7 +146,7 @@ const blogService = {
   // Delete a blog
   deleteBlog: async (id) => {
     try {
-      // Use the correct endpoint format based on your API
+
       const response = await api.fetch(`${BASE_URL}/blogs/${id}`, {
         method: 'DELETE'
       });

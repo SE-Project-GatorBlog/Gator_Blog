@@ -17,13 +17,11 @@ const PostDetailPage = () => {
       try {
         console.log(`Attempting to fetch post with ID: ${id}`);
         
-        // WORKAROUND: Instead of using the problematic getBlogById endpoint,
-        // we'll fetch all blogs and filter for the one we want
+ 
         const response = await blogService.getAllBlogs();
         console.log('Received response from getAllBlogs:', response);
         
         if (response && response.blogs && Array.isArray(response.blogs)) {
-          // Find the blog with the matching ID
           const blog = response.blogs.find(blog => blog.ID === parseInt(id) || blog.ID === id);
           
           if (blog) {
