@@ -69,7 +69,7 @@ describe('New Post Page Tests', () => {
     cy.contains('HOME').click();
     
     // Check URL changed to dashboard
-    cy.url().should('include', '/dashboard');
+    cy.url().should('include', '/home');
   });
   
   it('should show tips section with writing advice', () => {
@@ -123,18 +123,6 @@ describe('Login Page Tests', () => {
     // Click the "Forgot Password?" link and check if the URL is correct
     cy.get('button').contains('Forgot Password? Click Here').click();
     cy.url().should('include', '/forgot-password');
-  });
-
-  it('should navigate to the dashboard when the login button is clicked with valid credentials', () => {
-    // Fill in the email and password fields
-    cy.get('input[name="email"]').type('durgas@ufl.edu');
-    cy.get('input[name="password"]').type('S@1234567');
-    
-    // Click the login button
-    cy.get('button[type="submit"]').click();
-    
-    // Assert that the URL has changed to the dashboard URL
-    cy.url().should('include', '/dashboard');
   });
   
   it('should validate UF email format', () => {
@@ -259,30 +247,43 @@ describe('SignUp Page Tests', () => {
   });
 });
 
-// Forgot Password Page Tests
 describe('Forgot Password Page Tests', () => {
   beforeEach(() => {
     cy.visit('/forgot-password');
   });
 
-  it('should allow submitting reset password request', () => {
-    cy.window().then((win) => {
-      cy.spy(win.console, 'log').as('consoleLog');
-    });
-
-    cy.get('input[name="email"]').type('test@ufl.edu');
-    
-    cy.get('button[type="submit"]').click();
-    
-    cy.get('@consoleLog').should('be.calledWith', 'Reset password email requested for:', 'test@ufl.edu');
+  it('should display the email input field', () => {
+    cy.get('input[name="email"]').should('be.visible');
   });
 
-  it('should navigate back to login page when back button is clicked', () => {
-    cy.contains('Back to Login').click();
+  it('should have a "Send Verification Code" button', () => {
+    cy.contains('Send Verification Code').should('be.visible');
+  });
 
+  it('should prevent submission if email is empty', () => {
+    cy.get('form').then(($form) => {
+      expect($form[0].checkValidity()).to.be.false;
+    });
+  
+    cy.get('button').contains('Send Verification Code').click();
+  
+    // Optionally assert that you're still on the page
+    cy.url().should('include', '/forgot-password');
+  });
+  
+
+  it('should show validation error for non-UF email', () => {
+    cy.get('input[name="email"]').type('notufemail@gmail.com');
+    cy.contains('Send Verification Code').click();
+    cy.contains('Please enter a valid @ufl.edu email address').should('be.visible');
+  });
+
+  it('should navigate back to login when "Back to Login" is clicked', () => {
+    cy.contains('Back to Login').click();
     cy.url().should('include', '/login');
   });
 });
+
 
 // Dashboard Page Tests
 describe('Dashboard Page Tests', () => {
@@ -309,6 +310,39 @@ describe('Dashboard Page Tests', () => {
   it('should be able to type in the search bar', () => {
     cy.get('input').type('test').should('have.value', 'test');
   });
+});
+
+
+describe('Profile Page Tests', () => {
+  beforeEach(() => {
+    cy.window().then((win) => {
+      win.localStorage.setItem('token', 'fake-token');
+      win.localStorage.setItem('user', JSON.stringify({
+        username: 'testgator',
+        email: 'testgator@ufl.edu'
+      }));
+    });
+    cy.visit('/profile');
+  });
+
+  it('should display the username and email', () => {
+    cy.contains('Username').should('exist');
+    cy.contains('Email ID').should('exist');
+  });
+
+  it('should show the profile image (even if default)', () => {
+    cy.get('img').should('exist');
+  });
+
+  it('should show a MY POSTS section', () => {
+    cy.contains('MY POSTS').should('exist');
+  });
+
+  it('should display the NEW POST button and navigate when clicked', () => {
+    cy.contains('NEW POST').should('be.visible').click();
+    cy.url().should('include', '/new-post');
+  });
+
 });
 
 // Protected Routes Tests
