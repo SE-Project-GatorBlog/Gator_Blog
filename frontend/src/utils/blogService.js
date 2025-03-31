@@ -37,7 +37,11 @@ const blogService = {
   // Get a single blog by ID
   getBlogById: async (id) => {
     try {
-      const response = await api.fetch(`${BASE_URL}/blogs/${id}`);
+      // The backend API expects a GET request to /api/blogs/blog_id 
+      // This is the same endpoint used for PUT and DELETE, but with a different method
+      const response = await api.fetch(`${BASE_URL}/blogs/${id}`, {
+        method: 'GET'
+      });
       
       // Check if the response is OK
       if (!response.ok) {
@@ -61,12 +65,21 @@ const blogService = {
       
       const data = await response.json();
       
-      // Add additional validation to ensure the response contains a blog
-      if (!data || !data.blog) {
-        throw new Error('Blog data not found in the response');
+      // The API might return a different structure than expected
+      // It might return the blog directly rather than in a "blog" property
+      if (!data) {
+        throw new Error('No data received from the server');
       }
       
-      return data;
+      // Handle different possible response structures
+      if (data.blog) {
+        return data;
+      } else if (data.ID || data.id) {
+        // If the API returns the blog object directly
+        return { blog: data };
+      } else {
+        throw new Error('Blog data not found in the response');
+      }
     } catch (error) {
       console.error(`Error fetching blog with ID ${id}:`, error);
       throw error;

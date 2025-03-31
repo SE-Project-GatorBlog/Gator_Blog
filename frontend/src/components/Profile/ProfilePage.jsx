@@ -88,6 +88,10 @@ const ProfilePage = () => {
   const handleEditPost = (postId) => {
     navigate(`/edit-post/${postId}`);
   };
+
+  const handleViewPost = (postId) => {
+    navigate(`/post/${postId}`);
+  };
   
   const handleDeleteClick = (postId) => {
     setDeleteConfirmation({ show: true, postId });
@@ -298,6 +302,12 @@ const ProfilePage = () => {
                     </div>
                   </div>
                   <div className="flex space-x-2">
+                    <button 
+                      className="bg-blue-500 text-white px-4 py-1 rounded-lg text-sm hover:bg-blue-600"
+                      onClick={() => handleViewPost(post.id)}
+                    >
+                      View
+                    </button>
                     <button 
                       className="bg-[#0021A5] text-white px-4 py-1 rounded-lg text-sm hover:bg-[#001B8C]"
                       onClick={() => handleEditPost(post.id)}
