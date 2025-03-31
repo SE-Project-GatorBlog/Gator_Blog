@@ -14,8 +14,17 @@ const blogService = {
       const response = await api.fetch(url);
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.msg || 'Failed to fetch blogs');
+        const errorText = await response.text();
+        let errorMessage;
+        try {
+          // Try to parse as JSON
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.msg || 'Failed to fetch blogs';
+        } catch (e) {
+          // If not valid JSON, use the text directly
+          errorMessage = errorText || `Error ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
       
       return await response.json();
@@ -30,12 +39,34 @@ const blogService = {
     try {
       const response = await api.fetch(`${BASE_URL}/blogs/${id}`);
       
+      // Check if the response is OK
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.msg || `Failed to fetch blog with ID ${id}`);
+        console.error(`Error response from server: ${response.status} ${response.statusText}`);
+        
+        // Get the response as text first
+        const errorText = await response.text();
+        let errorMessage;
+        
+        try {
+          // Try to parse as JSON if possible
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.msg || `Failed to fetch blog with ID ${id}`;
+        } catch (e) {
+          // If not valid JSON, use the text directly
+          errorMessage = errorText || `Error ${response.status}: ${response.statusText}`;
+        }
+        
+        throw new Error(errorMessage);
       }
       
-      return await response.json();
+      const data = await response.json();
+      
+      // Add additional validation to ensure the response contains a blog
+      if (!data || !data.blog) {
+        throw new Error('Blog data not found in the response');
+      }
+      
+      return data;
     } catch (error) {
       console.error(`Error fetching blog with ID ${id}:`, error);
       throw error;
@@ -51,8 +82,17 @@ const blogService = {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.msg || 'Failed to create blog');
+        const errorText = await response.text();
+        let errorMessage;
+        try {
+          // Try to parse as JSON
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.msg || 'Failed to create blog';
+        } catch (e) {
+          // If not valid JSON, use the text directly
+          errorMessage = errorText || `Error ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
       
       return await response.json();
@@ -65,14 +105,24 @@ const blogService = {
   // Update an existing blog
   updateBlog: async (id, blogData) => {
     try {
+      // Use the correct endpoint format based on your API
       const response = await api.fetch(`${BASE_URL}/blogs/${id}`, {
         method: 'PUT',
         body: JSON.stringify(blogData)
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.msg || `Failed to update blog with ID ${id}`);
+        const errorText = await response.text();
+        let errorMessage;
+        try {
+          // Try to parse as JSON
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.msg || `Failed to update blog with ID ${id}`;
+        } catch (e) {
+          // If not valid JSON, use the text directly
+          errorMessage = errorText || `Error ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
       
       return await response.json();
@@ -85,13 +135,23 @@ const blogService = {
   // Delete a blog
   deleteBlog: async (id) => {
     try {
+      // Use the correct endpoint format based on your API
       const response = await api.fetch(`${BASE_URL}/blogs/${id}`, {
         method: 'DELETE'
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.msg || `Failed to delete blog with ID ${id}`);
+        const errorText = await response.text();
+        let errorMessage;
+        try {
+          // Try to parse as JSON
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.msg || `Failed to delete blog with ID ${id}`;
+        } catch (e) {
+          // If not valid JSON, use the text directly
+          errorMessage = errorText || `Error ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
       
       return await response.json();

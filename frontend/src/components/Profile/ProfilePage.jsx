@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import blogService from '../../utils/blogService';
@@ -14,6 +14,40 @@ const ProfilePage = () => {
   const [userPosts, setUserPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState({ show: false, postId: null });
+  
+  // Use useCallback to memoize the fetchUserPosts function
+  const fetchUserPosts = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await blogService.getAllBlogs();
+      
+      // Process blog data
+      const formattedPosts = data.blogs ? data.blogs.map(blog => ({
+        id: blog.ID,
+        username: user?.username || 'User',
+        date: new Date(blog.created_at || blog.CreatedAt).toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        title: blog.Title,
+        content: blog.Post, // This is the HTML content
+        createdAt: blog.created_at || blog.CreatedAt,
+        likes: 0, // Placeholder - backend doesn't yet support likes
+        comments: 0 // Placeholder - backend doesn't yet support comments
+      })) : [];
+      
+      setUserPosts(formattedPosts);
+    } catch (err) {
+      console.error('Error fetching posts:', err);
+      setError('Failed to load posts. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
   
   useEffect(() => {
     // In a real app, you would fetch the user's profile data from your backend
@@ -27,37 +61,8 @@ const ProfilePage = () => {
     
     // Fetch user's posts
     fetchUserPosts();
-  }, [user]);
+  }, [user, fetchUserPosts]); // Added fetchUserPosts as a dependency
   
-  const fetchUserPosts = async () => {
-    setIsLoading(true);
-    try {
-      const data = await blogService.getAllBlogs();
-      
-      // Process blog data
-      const formattedPosts = data.blogs ? data.blogs.map(blog => ({
-        id: blog.ID,
-        username: user?.username || 'User',
-        date: new Date(blog.CreatedAt).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        }),
-        title: blog.Title,
-        content: blog.Post, // This is the HTML content
-        likes: 0, // Placeholder - backend doesn't yet support likes
-        comments: 0 // Placeholder - backend doesn't yet support comments
-      })) : [];
-      
-      setUserPosts(formattedPosts);
-    } catch (err) {
-      console.error('Error fetching posts:', err);
-      setError('Failed to load posts. Please try again later.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -81,9 +86,30 @@ const ProfilePage = () => {
   };
   
   const handleEditPost = (postId) => {
-    // In a real app, you would navigate to an edit page or show a modal
-    console.log('Edit post:', postId);
-    // navigate(`/edit-post/${postId}`);
+    navigate(`/edit-post/${postId}`);
+  };
+  
+  const handleDeleteClick = (postId) => {
+    setDeleteConfirmation({ show: true, postId });
+  };
+  
+  const handleCancelDelete = () => {
+    setDeleteConfirmation({ show: false, postId: null });
+  };
+  
+  const handleConfirmDelete = async () => {
+    try {
+      await blogService.deleteBlog(deleteConfirmation.postId);
+      
+      // Remove the deleted post from the local state
+      setUserPosts(userPosts.filter(post => post.id !== deleteConfirmation.postId));
+      
+      // Hide the confirmation dialog
+      setDeleteConfirmation({ show: false, postId: null });
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('Failed to delete post. Please try again.');
+    }
   };
   
   // Function to safely render HTML content
@@ -108,7 +134,7 @@ const ProfilePage = () => {
               onClick={() => navigate('/dashboard')}
               className="text-white hover:text-blue-200"
             >
-              POSTS
+              ALL POSTS
             </button>
             <button 
               className="text-white hover:text-blue-200 font-bold"
@@ -192,6 +218,30 @@ const ProfilePage = () => {
           </div>
         </div>
 
+        {/* Delete Confirmation Modal */}
+        {deleteConfirmation.show && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+              <h3 className="text-xl font-bold text-[#0021A5] mb-4">Confirm Delete</h3>
+              <p className="text-gray-700 mb-6">Are you sure you want to delete this post? This action cannot be undone.</p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={handleCancelDelete}
+                  className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Posts List */}
         <div className="space-y-6">
           {isLoading ? (
@@ -247,12 +297,20 @@ const ProfilePage = () => {
                       Comments: {post.comments}
                     </div>
                   </div>
-                  <button 
-                    className="bg-[#0021A5] text-white px-4 py-1 rounded-lg text-sm hover:bg-[#001B8C]"
-                    onClick={() => handleEditPost(post.id)}
-                  >
-                    Edit Post
-                  </button>
+                  <div className="flex space-x-2">
+                    <button 
+                      className="bg-[#0021A5] text-white px-4 py-1 rounded-lg text-sm hover:bg-[#001B8C]"
+                      onClick={() => handleEditPost(post.id)}
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      className="bg-red-600 text-white px-4 py-1 rounded-lg text-sm hover:bg-red-700"
+                      onClick={() => handleDeleteClick(post.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             ))

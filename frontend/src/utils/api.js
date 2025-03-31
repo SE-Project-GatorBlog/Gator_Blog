@@ -23,6 +23,14 @@ const api = {
     
     // Make the fetch request
     const response = await fetch(url, requestOptions);
+  
+    if (response.status === 401) {
+      localStorage.removeItem('token');
+      // Only redirect if we're in a browser environment
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
+    }
     
     return response;
   }
