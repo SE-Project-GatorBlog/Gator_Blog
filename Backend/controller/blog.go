@@ -61,6 +61,54 @@ func BlogList(c *fiber.Ctx) error {
 
 }
 
+// Fetches a single blog by ID
+func BlogFetch(c *fiber.Ctx) error {
+	context := fiber.Map{
+		"statusText": "OK",
+		"msg":        "Fetch Blog",
+	}
+
+	// Extract user email from middleware/local storage
+	userEmail, ok := c.Locals("userEmail").(string)
+	if !ok || userEmail == "" {
+		log.Println("User email not found in context")
+		context["statusText"] = "error"
+		context["msg"] = "Unauthorized"
+		return c.JSON(context)
+	}
+
+	// Find the user by email
+	var user model.User
+	result := database.DBConn.Where("email = ?", userEmail).First(&user)
+	if result.Error != nil {
+		log.Println("User not found")
+		context["statusText"] = "error"
+		context["msg"] = "User not found"
+		return c.Status(404).JSON(context)
+	}
+
+	// Get blog ID from params
+	blogID := c.Params("id")
+	if blogID == "" {
+		context["statusText"] = "error"
+		context["msg"] = "Blog ID is required"
+		return c.Status(400).JSON(context)
+	}
+
+	// Retrieve the specific blog
+	var blog model.Blog
+	result = database.DBConn.Where("id = ? AND user_id = ?", blogID, user.ID).First(&blog)
+	if result.Error != nil {
+		log.Println("Blog not found")
+		context["statusText"] = "error"
+		context["msg"] = "Blog not found"
+		return c.Status(404).JSON(context)
+	}
+
+	context["blog"] = blog
+	return c.Status(200).JSON(context)
+}
+
 // Adds a blog
 func BlogCreate(c *fiber.Ctx) error {
 	context := fiber.Map{
