@@ -12,7 +12,7 @@
 ---
 
 ## 1. Sprint Goal
-The goal of Sprint 3 was to complete core blog functionalities with full CRUD operations, enhance the password reset process via email, and implement frontend profile page integration. This sprint focused on robust testing and seamless integration between frontend and backend systems. 
+The goal of Sprint 3 was to complete core blog functionalities with full CRUD operations, enhance the password reset process via email, implemented Redis caching to optimize database queries,and implement frontend profile page integration. This sprint focused on robust testing and seamless integration between frontend and backend systems.
 
 ---
 
@@ -73,8 +73,10 @@ The goal of Sprint 3 was to complete core blog functionalities with full CRUD op
   - `POST /blogs` - Create a new blog post
   - `PUT /blogs/:id` - Update an existing blog
   - `DELETE /blogs/:id` - Remove a blog post
-
+  
 - Enhanced database schema to support password reset flow and blog metadata tracking by introducing new fields in the `users` and `blogs` tables. This included fields for storing reset codes, code expiry timestamps, and automatic tracking of blog creation and update times.
+  
+- Redis caching was implemented to optimize performance by reducing redundant database queries. Frequently accessed data, such as user session details and blog content, is now cached in Redis, significantly improving response times and reducing database load.
 
 - Performed extensive unit testing using mock databases to simulate real scenarios. Covered edge cases, error responses, and user-specific validations for all new APIs to ensure system reliability and correctness.
   
@@ -100,6 +102,9 @@ The goal of Sprint 3 was to complete core blog functionalities with full CRUD op
 - Updated the `blogs` table to include:
   - `created_at` and `updated_at` timestamps  
   This helps in tracking blog creation and modification history for improved sorting, filtering, and version control.
+- Integrated Redis caching to improve database performance:
+  - Cached frequently accessed data, such as user session details and blog content, to reduce redundant queries.
+  - Improved response times and optimized backend performance by reducing direct database load.
 
 ### Deployment & DevOps:
 - Resolved API connection issues between frontend and backend.
@@ -400,6 +405,7 @@ These tests ensure new frontend functionality is thoroughly tested and error-res
 - Coordinating JWT-based route protections across new endpoints.
 - Managing sync between frontend state and backend updates.
 - Resolving merge conflicts due to parallel feature development.
+- Integrating Redis for session management and caching to improve performance, while ensuring proper synchronization between cache and database updates
 
 ---
 
@@ -409,12 +415,14 @@ These tests ensure new frontend functionality is thoroughly tested and error-res
 - Keeping consistent naming and response formats improves frontend integration.
 - Improved coordination between frontend and backend teams speeds up integration.
 - Writing test cases earlier helps catch errors before deployment.
+- Implementing Redis introduced the need for careful monitoring and optimization of cache usage
 
 ---
 
 ## 8. Sprint Retrospective
 ### What Went Well:
 - Successfully completed full CRUD backend for blogs.
+- Redis caching was successfully integrated, significantly reducing response times and enhancing performance for frequently accessed data.
 - Robust password reset flow implemented securely.
 - Profile page well integrated with backend.
 - Effective use of version control and issue tracking.
@@ -424,6 +432,7 @@ These tests ensure new frontend functionality is thoroughly tested and error-res
 - Add blog filtering/sorting on frontend for better UX.
 - More comprehensive UI testing with diverse user scenarios.
 - Reducing manual testing effort by automating API tests.
+- Optimizate Cache Key and Implement fallback mechanism for Cache Failures
 
 ---
 
@@ -431,4 +440,4 @@ These tests ensure new frontend functionality is thoroughly tested and error-res
 - Implement likes and comments functionality.
 - Enhance user dashboard with additional profile features.
 - Improve search and filtering options for blog posts.
-- Add image upload support in blog posts.
+- Optimizate Cache Key and Implement fallback mechanism for Cache Failures.
