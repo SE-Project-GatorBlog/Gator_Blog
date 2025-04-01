@@ -28,48 +28,72 @@ The goal of Sprint 3 was to complete core blog functionalities with full CRUD op
 
 | User Stories | Explanation | Implemented |
 |-------------|-------------|--------------|
-| As a backend developer, I want to implement an API to fetch blogs for authenticated users | To allow users to view only their relevant content | ✅ |
-| As a backend developer, I want to test the functionality of my backend code and APIs | To ensure all implemented features work correctly | ✅ |
-| As a backend developer, I want to test the functionality for SignUp | To validate user registration and prevent unauthorized access | ✅ |
-| As a backend developer, I want to test the functionality for SignIn | To verify authentication and ensure secure login | ✅ |
-| As a frontend developer, I want to test the functionality of my frontend code | To validate UI interactions and user experience | ✅ |
-| As a frontend developer, I want to test the Login Page functionality | To ensure users can securely log in without errors | ✅ |
-| As a frontend developer, I want to test the SignUp Page functionality | To verify that new users can register successfully | ✅ |
-| As a frontend developer, I want to test the Dashboard Page functionality | To confirm dashboard elements load correctly and display user-specific data | ✅ |
-| As a frontend developer, I want to test the Home Page functionality | To validate navigation, layout, and featured blog posts | ✅ |
-| As a frontend developer, I want to test the Forgot Password Page functionality | To ensure users can reset their passwords securely | ✅ |
-| As a user, I want to delete and edit my posted blogs | To manage my content effectively | ✅ |
-| As a user, I want to create a profile for my dashboard | To personalize my account and manage settings | ✅ |
-| As a user, I want to post blogs so that I can share my thoughts, insights, and updates with others | To contribute content to the platform | ✅ |
-| As a user, I want to comment on blog posts | To engage with authors and other readers | ❌ |
-| As a user, I want to like blog posts | To show appreciation for good content | ❌ |
-| As a user, I want to edit my blog posts after publishing | To correct mistakes or update content | ❌ |
+| As a user, I want to be able to delete my posted blogs | To allow users to manage and remove their own content | ✅ |
+| As a user, I want to be able to post blogs so that I can share my thoughts, insights, and updates with others | To enable content creation and sharing | ✅ |
+| As a user, I want to create a profile for my user dashboard | To personalize the user experience and enable profile management | ✅ |
+| As a Developer, I want to validate email utility using standalone testing to ensure email delivery | To ensure that emails are properly sent during password reset | ✅ |
+| As a Developer, I want to test the complete forgot password flow from email to reset | To validate end-to-end functionality of the password reset feature | ✅ |
+| As a Backend Developer, I want to test the Reset Password API to confirm secure password update | To ensure password updates are secure and functioning | ✅ |
+| As a Backend Developer, I want to test the Verify Reset Code API for valid and expired codes | To validate proper behavior for reset code verification | ✅ |
+| As a Backend Developer, I want to test the Request Reset Code API to ensure it sends emails correctly | To confirm reset code emails are being sent successfully | ✅ |
+| As a Backend Developer, I want to configure the email utility to send password reset codes using Gmail SMTP | To implement actual email delivery for password reset | ✅ |
+| As a Backend Developer, I want to test create, update, view and delete the posts | To ensure all blog CRUD operations function properly | ✅ |
+| As a Backend Developer, I want to implement the Reset Password API to securely update the user's password after verification | To complete the forgot password flow securely | ✅ |
+| As a Backend Developer, I want to create, update, view and delete the posts | To implement complete blog management features | ✅ |
+| As a Backend Developer, I want to implement the Verify Reset Code API to check the validity of the entered code | To verify reset code before allowing password change | ✅ |
+| As a Backend Developer, I want to implement the Request Reset Code API to send a verification code to the user's email | To start the password reset process securely | ✅ |
+| As a user, I want to be able to like blog posts | To engage with content and show appreciation | ❌ |
+| As a user, I want to comment on blog posts | To interact with blog authors and other readers | ❌ |
+| As a frontend developer, I want to implement blog search and filter by category | To improve content discoverability | ❌ |
 
 ### 3.1 Reasons for Not Implementing Certain Features
 
 - **Commenting on Blog Posts:** This feature was deprioritized in Sprint 1 as the focus was on establishing core authentication and backend setup. It will be implemented in the next sprint.  
 - **Liking Blog Posts:** Implementing a like feature requires additional modifications to the database schema and was planned for a future sprint to maintain the sprint timeline.  
-- **Editing blog posts after publishing** Editing functionality requires implementing version control and additional backend logic, which were deprioritized for this sprint. 
+- **Search and Filter Functionality:** This feature was postponed due to prioritization of core profile and CRUD functionalities. It involves additional frontend logic and API query handling which will be taken up in the next sprint.
 
 ---
 
 ## 4. Tasks Completed
 ### Backend Setup:
-- Implemented API to fetch blogs for authenticated users.
-- Performed unit testing for all backend functions, covering all test cases using mock databases to avoid inconsistencies.
-- Enhanced database schema to support multiple blog posts.
-- Conducted API testing using Postman to verify CRUD operations.
+- Implemented the complete Forgot Password flow using three secure APIs: 
+  - `POST /request-reset-code` to send a reset code via email, 
+  - `POST /verify-reset-code` to validate the reset code, and 
+  - `POST /reset-password` to allow users to securely reset their passwords.  
+  These APIs include validations, email utility integration, and error handling for robust user support.
 
+- Developed full CRUD (Create, Read, Update, Delete) functionality for blogs through RESTful APIs, allowing   authenticated users to manage their content effectively:
+  - `GET /blogs` - Retrieve blogs belonging to the logged-in user
+  - `POST /blogs` - Create a new blog post
+  - `PUT /blogs/:id` - Update an existing blog
+  - `DELETE /blogs/:id` - Remove a blog post
+
+- Enhanced database schema to support password reset flow and blog metadata tracking by introducing new fields in the `users` and `blogs` tables. This included fields for storing reset codes, code expiry timestamps, and automatic tracking of blog creation and update times.
+
+- Performed extensive unit testing using mock databases to simulate real scenarios. Covered edge cases, error responses, and user-specific validations for all new APIs to ensure system reliability and correctness.
+  
 ### Frontend Setup:
-- Developed UI components for editing and deleting blogs.
-- Created the user profile dashboard page with editable fields.
-- Implemented unit testing for frontend components using Cypress.
-- Created a rich text editor with multiple features for creating, editing, and styling blog posts.
-- Developed and successfully implemented a page listing all popular blog posts.
+- Designed and implemented the User Profile page, including editable fields to display and update user information, all fully integrated with backend APIs.
+  
+- Integrated all newly developed blog CRUD API within the frontend, ensuring users can create, update, delete, and view their own blogs seamlessly via intuitive UI interactions.
+  
+- Wrote Cypress end-to-end (E2E) tests to simulate real user behavior for all profile and blog operations, ensuring consistent frontend-backend interaction.
+  
+- Implemented unit tests for key frontend components using React Testing Library to ensure UI rendering and logic correctness.
+
 
 ### Database:
 - Updated MySQL schema to store user profile details.
 - Added constraints and validations to prevent invalid data entry.
+  
+- Modified the `users` table by adding two new fields:
+  - `reset_code` – stores the one-time code sent for password reset
+  - `reset_code_expiry` – timestamp indicating the expiration of the reset code  
+  These fields enable secure handling of the forgot password feature.
+
+- Updated the `blogs` table to include:
+  - `created_at` and `updated_at` timestamps  
+  This helps in tracking blog creation and modification history for improved sorting, filtering, and version control.
 
 ### Deployment & DevOps:
 - Resolved API connection issues between frontend and backend.
@@ -77,74 +101,20 @@ The goal of Sprint 3 was to complete core blog functionalities with full CRUD op
 
 ---
 
+
 # API Documentation
 
-## Authentication APIs
+## Blog APIs (JWT Protected)
 
-### 1. Sign Up
-**Endpoint:** POST /api/signup  
-**Description:** Registers a new user.  
-**Request Body:**
-json
-{
-  "username": "user123",
-  "email": "user@example.com",
-  "password": "securepassword"
-}
-
-**Response:**
-- **201 Created** (Success)
-json
-{
-  "statusText": "OK",
-  "msg": "User registered successfully",
-  "token": "jwt_token"
-}
-
-- **400 Bad Request** (Invalid input, duplicate email/username)
-json
-{
-  "statusText": "error",
-  "msg": "Email already registered"
-}
-
-
-### 2. Sign In
-**Endpoint:** POST /api/signin  
-**Description:** Logs in a user and returns a JWT token.  
-**Request Body:**
-json
-{
-  "email": "user@example.com",
-  "password": "securepassword"
-}
-
-**Response:**
-- **200 OK** (Success)
-json
-{
-  "statusText": "OK",
-  "msg": "Login successful",
-  "token": "jwt_token"
-}
-
-- **401 Unauthorized** (Incorrect credentials)
-json
-{
-  "statusText": "error",
-  "msg": "Incorrect password"
-}
-
-
-### 3. Get Blog List
+### 1. Get Blog List  
 **Endpoint:** GET /api/blogs  
 **Description:** Fetches all blogs for the authenticated user.  
-**Headers:**
-Authorization: Bearer <jwt_token>
+**Headers:**  
+`Authorization: Bearer <jwt_token>`
 
 **Response:**
 - **200 OK** (Success)
-json
+```json
 {
   "statusText": "OK",
   "msg": "Blog List",
@@ -152,20 +122,173 @@ json
     {
       "id": 1,
       "title": "My First Blog",
-      "content": "This is my first blog content...",
+      "post": "This is my first blog content...",
       "user_id": 123
     }
   ]
 }
+```
 
 - **401 Unauthorized** (Missing/invalid token)
-json
+```json
 {
   "statusText": "error",
   "msg": "Unauthorized"
 }
+```
 
+---
 
+### 2. Create Blog  
+**Endpoint:** POST /api/blogs  
+**Description:** Creates a new blog post for the authenticated user.  
+**Headers:**  
+`Authorization: Bearer <jwt_token>`  
+**Request Body:**
+```json
+{
+  "title": "New Blog Title",
+  "post": "This is the content of the new blog."
+}
+```
+
+**Response:**
+- **201 Created**
+```json
+{
+  "statusText": "OK",
+  "msg": "Blog created successfully",
+  "blog": {
+    "id": 2,
+    "title": "New Blog Title",
+    "post": "This is the content of the new blog.",
+    "user_id": 123
+  }
+}
+```
+
+---
+
+### 3. Update Blog  
+**Endpoint:** PUT /api/blogs/:id  
+**Description:** Updates an existing blog post.  
+**Headers:**  
+`Authorization: Bearer <jwt_token>`  
+**Request Body:**
+```json
+{
+  "title": "Updated Blog Title",
+  "post": "Updated content for the blog."
+}
+```
+
+**Response:**
+- **200 OK**
+```json
+{
+  "statusText": "OK",
+  "msg": "Blog updated successfully",
+  "blog": {
+    "id": 2,
+    "title": "Updated Blog Title",
+    "post": "Updated content for the blog.",
+    "user_id": 123
+  }
+}
+```
+
+---
+
+### 4. Delete Blog  
+**Endpoint:** DELETE /api/blogs/:id  
+**Description:** Deletes a blog post.  
+**Headers:**  
+`Authorization: Bearer <jwt_token>`
+
+**Response:**
+- **200 OK**
+```json
+{
+  "statusText": "OK",
+  "msg": "Blog deleted successfully"
+}
+```
+
+---
+
+## Forgot Password APIs
+
+### 5. Request Reset Code  
+**Endpoint:** POST /api/request-reset-code  
+**Description:** Sends a reset code to the user's email address.  
+**Request Body:**
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Response:**
+- **200 OK**
+```json
+{
+  "statusText": "OK",
+  "msg": "Reset code sent successfully"
+}
+```
+
+---
+
+### 6. Verify Reset Code  
+**Endpoint:** POST /api/verify-reset-code  
+**Description:** Verifies the reset code submitted by the user.  
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "code": "123456"
+}
+```
+
+**Response:**
+- **200 OK**
+```json
+{
+  "statusText": "OK",
+  "msg": "Reset code verified successfully"
+}
+```
+
+- **400 Bad Request**
+```json
+{
+  "statusText": "error",
+  "msg": "Invalid or expired code"
+}
+```
+
+---
+
+### 7. Reset Password  
+**Endpoint:** POST /api/reset-password  
+**Description:** Resets the user's password after code verification.  
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "code": "123456",
+  "new_password": "newsecurepassword"
+}
+```
+
+**Response:**
+- **200 OK**
+```json
+{
+  "statusText": "OK",
+  "msg": "Password reset successful"
+}
+```
 ---
 
 ## 5. Testing:
