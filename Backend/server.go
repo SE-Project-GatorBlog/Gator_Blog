@@ -2,6 +2,7 @@ package main
 
 import (
 	"Gator_blog/database"
+	"Gator_blog/redis"
 	"Gator_blog/router"
 
 	"github.com/gofiber/fiber/v2"
@@ -11,6 +12,7 @@ import (
 
 func init() {
 	database.ConnectDB()
+	redis.InitRedis()
 }
 func main() {
 

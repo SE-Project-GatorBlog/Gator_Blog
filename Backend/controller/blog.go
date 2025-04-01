@@ -3,7 +3,10 @@ package controller
 import (
 	"Gator_blog/database"
 	"Gator_blog/model"
+	"Gator_blog/redis"
+	"fmt"
 	"log"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -39,8 +42,28 @@ func BlogList(c *fiber.Ctx) error {
 	// Query parameters (e.g., ?title=example)
 	titleFilter := c.Query("title")
 
+	//Create cache key
+	cacheKey := fmt.Sprintf("user:%d:blogs", user.ID)
+	if titleFilter != "" {
+		cacheKey = fmt.Sprintf("user:%d:blogs:title:%s", user.ID, titleFilter)
+	}
+
 	// Retrieve blogs for the user
 	var blogs []model.Blog
+	found, err := redis.GetCache(cacheKey, &blogs)
+	if err != nil {
+		log.Println("Reddis error: ", err)
+	}
+
+	if found { //cache hit
+		log.Println("Cache hit for ", cacheKey)
+		context["blogs"] = blogs
+		c.Status(200)
+		return c.JSON(context)
+
+	}
+	//cache miss
+	log.Println("Cache miss for ", cacheKey)
 	query := database.DBConn.Where("user_id = ?", user.ID)
 
 	if titleFilter != "" {
@@ -49,12 +72,16 @@ func BlogList(c *fiber.Ctx) error {
 	result = query.Find(&blogs)
 
 	if result.Error != nil {
-		log.Println("Error fetching blogs")
+		log.Println("Error fetching blogs", err)
 		context["statusText"] = "error"
 		context["msg"] = "Could not fetch blogs"
 		return c.JSON(context)
 	}
-
+	//store in redis
+	err = redis.SetCache(cacheKey, blogs, 10*time.Minute)
+	if err != nil {
+		log.Println("Error setting cache", err)
+	}
 	context["blogs"] = blogs
 	c.Status(200)
 	return c.JSON(context)
@@ -95,14 +122,34 @@ func BlogFetch(c *fiber.Ctx) error {
 		return c.Status(400).JSON(context)
 	}
 
+	//setup cachekey
+	cacheKey := fmt.Sprintf("user:%d:blog:%s", user.ID, blogID)
+
 	// Retrieve the specific blog
 	var blog model.Blog
+
+	found, err := redis.GetCache(cacheKey, &blog)
+	if err != nil {
+		log.Println("Reddis error: ", err)
+	}
+	if found { //cache hit
+		log.Println("Cache hit for ", cacheKey)
+		context["blog"] = blog
+		return c.Status(200).JSON(context)
+	}
+	//cache miss
+	log.Println("Cache miss for ", cacheKey)
+
 	result = database.DBConn.Where("id = ? AND user_id = ?", blogID, user.ID).First(&blog)
 	if result.Error != nil {
 		log.Println("Blog not found")
 		context["statusText"] = "error"
 		context["msg"] = "Blog not found"
 		return c.Status(404).JSON(context)
+	}
+	err = redis.SetCache(cacheKey, blog, 10*time.Minute)
+	if err != nil {
+		log.Println("Error setting cache", err)
 	}
 
 	context["blog"] = blog
@@ -149,6 +196,19 @@ func BlogCreate(c *fiber.Ctx) error {
 	}
 	context["msg"] = "Blog created successfully"
 	context["blog"] = blog
+
+	// Invalidate cache since we created a new blog
+	cacheKey := fmt.Sprintf("user:%d:blogs", user.ID)
+	redis.DeleteCache(cacheKey)
+
+	// Invalidate title specific cache entries
+	pattern := fmt.Sprintf("user:%d:blogs:title:*", user.ID)
+	keys, _ := redis.RedisClient.Keys(redis.Ctx, pattern).Result()
+	if len(keys) > 0 {
+		redis.RedisClient.Del(redis.Ctx, keys...)
+	}
+	log.Println("Invalidate cache for", cacheKey)
+	log.Println("Invalidate cache for", pattern)
 	return c.Status(201).JSON(context)
 }
 
@@ -202,6 +262,22 @@ func BlogUpdate(c *fiber.Ctx) error {
 	}
 	context["msg"] = "Blog updated successfully"
 	context["blog"] = blog
+
+	// Invalidate caches for this specific blog and the blogs list
+	blogCacheKey := fmt.Sprintf("user:%d:blog:%s", user.ID, blogID)
+	listCacheKey := fmt.Sprintf("user:%d:blogs", user.ID)
+
+	redis.DeleteCache(blogCacheKey)
+	redis.DeleteCache(listCacheKey)
+	log.Println("Invalidate cache for", blogCacheKey)
+	log.Println("Invalidate cache for", listCacheKey)
+	// Invalidate title-specific cache entries
+	pattern := fmt.Sprintf("user:%d:blogs:title:*", user.ID)
+	keys, _ := redis.RedisClient.Keys(redis.Ctx, pattern).Result()
+	if len(keys) > 0 {
+		redis.RedisClient.Del(redis.Ctx, keys...)
+	}
+	log.Println("Invalidate cache for", pattern)
 	return c.Status(200).JSON(context)
 }
 
@@ -248,5 +324,21 @@ func BlogDelete(c *fiber.Ctx) error {
 	}
 	context["msg"] = "Blog deleted successfully"
 	context["blog"] = blog
+
+	// Invalidate caches for this specific blog and the blogs list
+	blogCacheKey := fmt.Sprintf("user:%d:blog:%s", user.ID, blogID)
+	listCacheKey := fmt.Sprintf("user:%d:blogs", user.ID)
+	log.Println("Invalidate cache for", blogCacheKey)
+	log.Println("Invalidate cache for", listCacheKey)
+	redis.DeleteCache(blogCacheKey)
+	redis.DeleteCache(listCacheKey)
+
+	// Invalidate title-specific cache entries
+	pattern := fmt.Sprintf("user:%d:blogs:title:*", user.ID)
+	keys, _ := redis.RedisClient.Keys(redis.Ctx, pattern).Result()
+	if len(keys) > 0 {
+		redis.RedisClient.Del(redis.Ctx, keys...)
+	}
+	log.Println("Invalidate cache for", pattern)
 	return c.Status(200).JSON(context)
 }
