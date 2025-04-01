@@ -1,7 +1,7 @@
 # Sprint 3 Documentation
 
 ## Project Name: Gator Blog
-**Sprint Duration:**  03/04/2025 -  31/03/2025  
+**Sprint Duration:**  03/03/2025 -  31/03/2025  
 
 **Team Members:**  
 - Durga Sritha Dongla - Front End  
