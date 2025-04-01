@@ -4,7 +4,7 @@ import (
 	"Gator_blog/controller"
 	"Gator_blog/database"
 	"Gator_blog/model"
-	"Gator_blog/redis" // <-- Added redis import
+	"Gator_blog/redis"
 	"bytes"
 	"encoding/json"
 	"fmt"
