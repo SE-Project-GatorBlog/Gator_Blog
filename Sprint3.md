@@ -290,137 +290,134 @@ The goal of Sprint 3 was to complete core blog functionalities with full CRUD op
 }
 ```
 ---
-
-## 5. Testing:
-- Verified API responses using Postman for all CRUD operations.
-- Conducted UI testing for blog post management and user profile authentication using Cypress.
-- Validated authentication security for user-specific content access.
-- Debugged and resolved inconsistencies in API responses using mock databases.
-  
 ### 5.1 Backend Testing:
+
 #### Blog_test:
-The unit tests in blog_test.go focus on testing the Blog API functionality, ensuring that various scenarios related to fetching blog posts work correctly.
+In addition to blog listing, Sprint 3 added full unit test coverage for all CRUD operations and blog fetching. Redis caching integration was also validated through clean state setup between tests.
 
-#### Test Setup:
-- Uses an **in-memory SQLite database** to simulate a real database environment for testing.
-- Initializes test data, including a sample user and blog posts.
-- Implements middleware to set user authentication context.
-
-#### Test Cases:
+#### New Test Cases:
 
 | **Test Case** | **Description** |
 |--------------|----------------|
-| **TestBlogListUnauthorized** | Ensures that an unauthenticated user gets an error when trying to fetch blogs. |
-| **TestBlogListEmpty** | Checks that a user with no blog posts gets an empty list response. |
-| **TestBlogListWithBlogs** | Verifies that a user with multiple blogs receives a list of their own blogs. |
-| **TestBlogListUserNotFound** | Ensures an error response if the requested user does not exist. |
-| **TestBlogListDatabaseError** | Simulates a database failure and checks if the API handles it gracefully. |
-| **TestBlogListUserSegregation** | Validates that users only see their own blogs and not other users' posts. |
+| **TestBlogCreateSuccess** | Ensures a blog post can be created successfully with proper data and timestamps. |
+| **TestBlogCreateUnauthorized** | Verifies that users without authentication cannot create blogs. |
+| **TestBlogCreateInvalidInput** | Validates server response to malformed or incomplete input. |
+| **TestBlogCreateUserNotFound** | Ensures blog creation fails if the user context is missing in DB. |
+| **TestBlogUpdateSuccess** | Tests that users can update blog content and timestamps correctly. |
+| **TestBlogUpdateNonExistent** | Ensures update request to non-existent blog returns correct error. |
+| **TestBlogUpdateInvalidInput** | Validates behavior for malformed JSON during update. |
+| **TestBlogUpdateOtherUserBlog** | Ensures one user cannot update another user’s blog. |
+| **TestBlogDeleteSuccess** | Confirms that blogs can be deleted and are removed from DB. |
+| **TestBlogDeleteNonExistent** | Ensures deletion of non-existent blog returns appropriate error. |
+| **TestBlogDeleteOtherUserBlog** | Verifies that users cannot delete blogs owned by others. |
+| **TestBlogDeleteUnauthorized** | Ensures unauthorized users cannot delete blogs. |
+| **TestBlogFetchSuccess** | Tests successful retrieval of a specific blog post. |
+| **TestBlogFetchUnauthorized** | Ensures unauthenticated requests cannot access individual blogs. |
+| **TestBlogFetchNonExistent** | Confirms correct error is returned for non-existent blog ID. |
+| **TestBlogFetchOtherUserBlog** | Validates that users cannot fetch blogs owned by others. |
+| **TestBlogFetchUserNotFound** | Ensures error handling when blog's owner doesn't exist. |
+| **TestBlogFetchMissingIDParam** | Tests error message when blog ID is not provided in request. |
+| **TestBlogListWithTitleFilter** | Tests blog list filtering using partial title match. |
 
-These tests ensure that the blog fetching functionality works correctly under different conditions, covering authentication, database integrity, and error handling.
+These cases validate edge conditions and access control thoroughly. Redis was reset between each test to validate caching isolation.
+
+---
 
 #### Users_test:
-The unit tests in users_test.go focus on testing the authentication functionality of the Gator Blog platform, ensuring that user registration (SignUp) and authentication (SignIn) work correctly under various conditions.
+Sprint 3 extended test coverage in `users_test.go` to validate the forgot password flow using reset code requests, verification, and secure password updates.
 
-#### Test Setup:
-- Uses an **in-memory SQLite database** to simulate a real database environment for testing.
-- Initializes the database with user data for authentication tests.
-- Configures API routes for signup and login.
-
-#### Test Cases:
+#### New Test Cases:
 
 | **Test Case** | **Description** |
 |--------------|----------------|
-| **TestSignUpSuccess** | Ensures that a new user can successfully register and receive a valid token. |
-| **TestSignUpDuplicateEmail** | Validates that users cannot register with an email that is already taken. |
-| **TestSignUpDuplicateUsername** | Ensures that duplicate usernames are not allowed during registration. |
-| **TestSignUpInvalidJSON** | Tests handling of malformed JSON requests during signup. |
-| **TestSignInSuccess** | Verifies that an existing user can successfully log in and receive a token. |
-| **TestSignInUserNotFound** | Ensures an error response when a non-existent user attempts to log in. |
-| **TestSignInIncorrectPassword** | Validates that incorrect passwords return an authentication error. |
-| **TestSignInInvalidJSON** | Checks if the API properly handles malformed JSON requests during login. |
-| **TestSignInMissingFields** | Ensures that missing fields in login requests result in an appropriate error response. |
-| **TestJWTTokenValidation** | Validates the JWT authentication process, ensuring tokens are correctly generated and verified. |
-| **TestMalformedContentType** | Ensures that requests with incorrect content types are properly handled. |
-| **TestDatabaseErrorHandling** | Simulates database errors to test how the API handles failures during authentication. |
+| **TestRequestResetCodeUserNotFound** | Ensures that password reset requests fail for unregistered users. |
+| **TestRequestResetCodeInvalidJSON** | Verifies that invalid JSON bodies are rejected appropriately. |
+| **TestVerifyResetCodeSuccess** | Tests full verification of a valid code and code removal after success. |
+| **TestVerifyResetCodeInvalid** | Checks behavior when an incorrect reset code is provided. |
+| **TestVerifyResetCodeExpired** | Simulates expired codes and ensures they are rejected. |
+| **TestVerifyResetCodeUserNotFound** | Ensures invalid email leads to proper error in verification. |
+| **TestVerifyResetCodeInvalidJSON** | Verifies error response on malformed input for code verification. |
+| **TestResetPasswordSuccess** | Ensures that user password can be securely reset. |
+| **TestResetPasswordUserNotFound** | Ensures reset fails for unregistered users. |
+| **TestResetPasswordInvalidJSON** | Validates server response to malformed JSON. |
+| **TestResetPasswordFlow** | Simulates end-to-end password reset: request → verify → reset → login with new password. |
 
-These tests ensure the robustness of authentication mechanisms, preventing issues like duplicate accounts, incorrect logins, and handling edge cases efficiently.
+These tests ensure secure handling of reset flows, edge cases, and email-based verification.
+All tests were performed using in-memory SQLite DB and isolated app instances. Redis was used to test caching behavior clean-up during blog retrieval scenarios.
 ___
 
 ### 5.2 Frontend Testing:
-#### Using Cypress testing:
-The Cypress tests in spec.cy.js focus on testing the frontend functionality of the Gator Blog platform, ensuring that key user interface elements and authentication flows work correctly.
+
+#### Using Cypress Testing:
+Sprint 3 introduced additional **Cypress** tests targeting the Profile Page and new interactions introduced during CRUD and forgot password flow enhancements.
 
 #### Test Setup:
-- Uses **Cypress** for end-to-end testing of the frontend components.
-- Simulates user interactions such as form submissions, navigation, and authentication.
-- Validates UI behavior and API integration.
+- Continues to use Cypress for end-to-end frontend testing.
+- Tests simulate profile management, navigation, and backend API integration.
+- Mocks API responses where applicable to simulate network latency and user scenarios.
 
-#### Test Cases:
+#### New Test Cases:
 
 | **Test Case** | **Description** |
 |--------------|----------------|
-| **TestLoginPage** | Ensures the login page loads correctly and allows users to sign in successfully. |
-| **TestSignUpPage** | Verifies that users can register successfully and validation errors are displayed for incorrect inputs. |
-| **TestDashboardPage** | Confirms that the dashboard loads correctly and displays user-specific content. |
-| **TestHomePage** | Validates that the homepage loads properly and blog posts are listed as expected. |
-| **TestForgotPasswordPage** | Ensures users can reset their passwords and receive a confirmation message. |
-| **TestCreateBlogPost** | Tests the ability to create a new blog post and validate input fields. |
-| **TestEditBlogPost** | Ensures that users can edit their blog posts and see updated content. |
-| **TestDeleteBlogPost** | Verifies that users can delete their blog posts and receive confirmation. |
-| **TestNavigation** | Checks that the navigation bar functions correctly, allowing users to move between pages. |
-| **TestLogout** | Ensures that users can log out and are redirected to the login page. |
+| **TestProfilePageRender** | Confirms the profile page loads correctly and user information is pre-filled. |
+| **TestProfileEditAndSave** | Validates that users can edit and save their profile, and the changes reflect properly. |
+| **TestUnauthorizedProfileAccess** | Ensures users not logged in are redirected to the login page from the profile route. |
 
-These tests ensure the frontend UI functions smoothly, validating both user interactions and API responses.
+These additions expand test coverage to account for new features in the profile page and routing logic tied to user authentication state.
+
+---
 
 #### Frontend Unit Tests:
-The frontend unit tests focus on verifying the rendering of key UI components in the Gator Blog platform using **React Testing Library**. These tests ensure that essential buttons, images, and navigation elements are present on the homepage.
+In Sprint 3, **Jest** was introduced for unit testing new components and logic in the **Profile Page**.
 
 #### Test Setup:
-- Uses React Testing Library for unit testing.
-- Wraps components in MemoryRouter to simulate routing behavior.
-- Verifies rendering of UI elements based on user expectations.
+- Uses **React Testing Library** and **Jest**.
+- Profile components are wrapped in routing and context providers for accurate state simulation.
+- API methods are mocked to test both UI and logic paths independently.
 
-#### Test Cases:
+#### New Test Cases:
 
 | **Test Case** | **Description** |
 |--------------|----------------|
-| **TestStartBloggingButton** | Ensures the "START BLOGGING" button is rendered on the homepage. |
-| **TestHomeButton** | Verifies that the "HOME" button is present in the UI. |
-| **TestMyProfileButton** | Confirms that the "MY PROFILE" button is correctly displayed. |
-| **TestGatorImage** | Ensures that the Gator image is rendered properly. |
-| **TestPostsButton** | Checks that the "POSTS" button appears in the interface. |
+| **TestProfileInputFieldsRender** | Verifies input elements for name, email, and bio appear with correct values. |
+| **TestProfileUpdateHandler** | Ensures that saving profile changes triggers the appropriate API call. |
+| **TestValidationErrors** | Checks for client-side form validation errors and corresponding UI feedback. |
 
-These tests help maintain UI consistency by ensuring critical elements are correctly displayed and accessible to users.
+These tests ensure new frontend functionality is thoroughly tested and error-resistant under different interaction flows.
 
 ---
 
 ## 6. Challenges Faced
 - Database schema adjustments to accommodate additional fields.
-- Handling authentication and authorization for blog fetching API.
-- Synchronizing frontend state updates with backend changes.
+- Ensuring secure handling of password reset flow and token expiration.
+- Coordinating JWT-based route protections across new endpoints.
+- Managing sync between frontend state and backend updates.
 - Resolving merge conflicts due to parallel feature development.
 
 ---
 
 ## 7. Lessons Learned
+- Email-based verification adds layers of complexity requiring better error handling.
+- Testing APIs early helped catch and fix issues faster.
+- Keeping consistent naming and response formats improves frontend integration.
 - Improved coordination between frontend and backend teams speeds up integration.
 - Writing test cases earlier helps catch errors before deployment.
-- Using test-driven development (TDD) helped identify issues early.
 
 ---
 
 ## 8. Sprint Retrospective
 ### What Went Well:
-- Successfully implemented user profile management.
-- Improved testing methodologies for both frontend and backend.
-- Effective sprint planning and task distribution.
+- Successfully completed full CRUD backend for blogs.
+- Robust password reset flow implemented securely.
+- Profile page well integrated with backend.
 - Effective use of version control and issue tracking.
 
 ### What Could Be Improved:
+- Automate email testing using local SMTP mocking.
+- Add blog filtering/sorting on frontend for better UX.
 - More comprehensive UI testing with diverse user scenarios.
 - Reducing manual testing effort by automating API tests.
-- Better planning for API integrations to reduce delays.
 
 ---
 
@@ -428,4 +425,4 @@ These tests help maintain UI consistency by ensuring critical elements are corre
 - Implement likes and comments functionality.
 - Enhance user dashboard with additional profile features.
 - Improve search and filtering options for blog posts.
-- Implement creating and updating blog posts
+- Add image upload support in blog posts.
