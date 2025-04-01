@@ -4,6 +4,7 @@ import (
 	"Gator_blog/controller"
 	"Gator_blog/database"
 	"Gator_blog/model"
+	"Gator_blog/redis" // <-- Added redis import
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -37,6 +38,13 @@ func (suite *BlogTestSuite) SetupTest() {
 	db.AutoMigrate(&model.User{}, &model.Blog{})
 	database.DBConn = db
 	suite.db = db
+
+	// Initialize Redis and flush any existing keys to start with a clean state
+	redis.InitRedis()
+	if err := redis.RedisClient.FlushDB(redis.Ctx).Err(); err != nil {
+		suite.T().Fatal("Failed to flush Redis DB:", err)
+	}
+
 	app := fiber.New()
 
 	// Create a middleware to set the user email in locals for testing
@@ -71,6 +79,8 @@ func (suite *BlogTestSuite) SetupTest() {
 func (suite *BlogTestSuite) TearDownTest() {
 	sqlDB, _ := suite.db.DB()
 	sqlDB.Close()
+	// Flush Redis DB to clear any cached data between tests
+	redis.RedisClient.FlushDB(redis.Ctx)
 }
 
 // Test fetching blogs when user is not authenticated
