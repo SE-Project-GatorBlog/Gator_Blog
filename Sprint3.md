@@ -42,9 +42,15 @@ The goal of Sprint 3 was to complete core blog functionalities with full CRUD op
 | As a Backend Developer, I want to create, update, view and delete the posts | To implement complete blog management features | ✅ |
 | As a Backend Developer, I want to implement the Verify Reset Code API to check the validity of the entered code | To verify reset code before allowing password change | ✅ |
 | As a Backend Developer, I want to implement the Request Reset Code API to send a verification code to the user's email | To start the password reset process securely | ✅ |
+| As a Backend Developer, I want to Setup Redis Integration | To enable server-side caching and improve performance | ✅ |
+| As a Backend Developer, I want to Implement Blog Caching with Redis | To cache blog data for faster retrieval and reduced DB load | ✅ |
+| As a Backend Developer, I want to Invalidate Redis Cache on Blog Updates and Deletions | To ensure data consistency between cache and database | ✅ |
+| As a Backend developer, I want to implement Fallback Mechanism for Cache Failures | To maintain availability in case Redis becomes unavailable | ✅ |
+| As a Backend developer, I want to Optimizate Cache Key | To organize and index cache entries more efficiently | ✅ |
 | As a user, I want to be able to like blog posts | To engage with content and show appreciation | ❌ |
 | As a user, I want to comment on blog posts | To interact with blog authors and other readers | ❌ |
 | As a frontend developer, I want to implement blog search and filter by category | To improve content discoverability | ❌ |
+
 
 ### 3.1 Reasons for Not Implementing Certain Features
 
