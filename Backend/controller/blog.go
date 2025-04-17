@@ -342,3 +342,57 @@ func BlogDelete(c *fiber.Ctx) error {
 	log.Println("Invalidate cache for", pattern)
 	return c.Status(200).JSON(context)
 }
+
+func BlogListWithMeta(c *fiber.Ctx) error {
+	context := fiber.Map{
+		"statusText": "OK",
+		"msg":        "Blogs with Meta",
+	}
+
+	userEmail, ok := c.Locals("userEmail").(string)
+	if !ok || userEmail == "" {
+		context["statusText"] = "error"
+		context["msg"] = "Unauthorized"
+		return c.Status(401).JSON(context)
+	}
+
+	var user model.User
+	result := database.DBConn.Where("email = ?", userEmail).First(&user)
+	if result.Error != nil {
+		context["statusText"] = "error"
+		context["msg"] = "User not found"
+		return c.Status(404).JSON(context)
+	}
+
+	// Fetch blogs
+	var blogs []model.Blog
+	if err := database.DBConn.Where("user_id = ?", user.ID).Find(&blogs).Error; err != nil {
+		context["statusText"] = "error"
+		context["msg"] = "Failed to fetch blogs"
+		return c.Status(500).JSON(context)
+	}
+
+	var enrichedBlogs []BlogWithMeta
+	for _, blog := range blogs {
+		// Get likes count
+		var likeCount int64
+		database.DBConn.Model(&model.Like{}).Where("blog_id = ?", blog.ID).Count(&likeCount)
+
+		// Get comments
+		var comments []model.Comment
+		database.DBConn.Where("blog_id = ?", blog.ID).Find(&comments)
+
+		enrichedBlogs = append(enrichedBlogs, BlogWithMeta{
+			ID:        blog.ID,
+			Title:     blog.Title,
+			Post:      blog.Post,
+			CreatedAt: blog.CreatedAt,
+			UpdatedAt: blog.UpdatedAt,
+			Likes:     likeCount,
+			Comments:  comments,
+		})
+	}
+
+	context["blogs"] = enrichedBlogs
+	return c.Status(200).JSON(context)
+}
