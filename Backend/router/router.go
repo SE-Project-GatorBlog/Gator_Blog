@@ -25,4 +25,13 @@ func SetupRoutes(app *fiber.App) {
 	protected.Post("/blogs", controller.BlogCreate)
 	protected.Put("/blogs/:id", controller.BlogUpdate)
 	protected.Delete("/blogs/:id", controller.BlogDelete)
+
+	// Blog comment and like routes
+	protected.Post("/blogs/:id/comments", controller.AddComment)
+	protected.Get("/blogs/:id/comments", controller.GetCommentsByBlogID)
+
+	protected.Post("/blogs/:id/likes", controller.LikeBlog)
+	protected.Get("/blogs/:id/likes", controller.GetLikesByBlogID)
+
+	protected.Get("/blogs-with-meta", controller.BlogListWithMeta)
 }
