@@ -17,6 +17,9 @@ func SetupRoutes(app *fiber.App) {
 	api.Post("/verify-reset-code", controller.VerifyResetCode)
 	api.Post("/reset-password", controller.ResetPasswordWithEmail)
 
+	api.Get("/all-blogs-with-meta", controller.AllBlogsWithMeta)
+	api.Get("/top-popular-blogs", controller.Top5PopularBlogs)
+
 	// Protect blog routes with JWT middleware
 	protected := api.Group("/", middleware.JWTMiddleware())
 

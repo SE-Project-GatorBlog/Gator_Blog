@@ -343,6 +343,7 @@ func BlogDelete(c *fiber.Ctx) error {
 	return c.Status(200).JSON(context)
 }
 
+// fetches blogs of a particular user based on user_id
 func BlogListWithMeta(c *fiber.Ctx) error {
 	context := fiber.Map{
 		"statusText": "OK",
@@ -364,9 +365,60 @@ func BlogListWithMeta(c *fiber.Ctx) error {
 		return c.Status(404).JSON(context)
 	}
 
-	// Fetch blogs
+	searchQuery := c.Query("search")
 	var blogs []model.Blog
-	if err := database.DBConn.Where("user_id = ?", user.ID).Find(&blogs).Error; err != nil {
+
+	query := database.DBConn.Where("user_id = ?", user.ID)
+
+	if searchQuery != "" {
+		likePattern := "%" + searchQuery + "%"
+		query = query.Where("title LIKE ? OR post LIKE ?", likePattern, likePattern)
+	}
+
+	if err := query.Find(&blogs).Error; err != nil {
+		context["statusText"] = "error"
+		context["msg"] = "Failed to fetch blogs"
+		return c.Status(500).JSON(context)
+	}
+
+	var enrichedBlogs []BlogWithMeta
+	for _, blog := range blogs {
+		var likeCount int64
+		database.DBConn.Model(&model.Like{}).Where("blog_id = ?", blog.ID).Count(&likeCount)
+
+		var comments []model.Comment
+		database.DBConn.Where("blog_id = ?", blog.ID).Find(&comments)
+
+		enrichedBlogs = append(enrichedBlogs, BlogWithMeta{
+			ID:        blog.ID,
+			Title:     blog.Title,
+			Post:      blog.Post,
+			CreatedAt: blog.CreatedAt,
+			UpdatedAt: blog.UpdatedAt,
+			Likes:     likeCount,
+			Comments:  comments,
+		})
+	}
+
+	context["blogs"] = enrichedBlogs
+	return c.Status(200).JSON(context)
+}
+
+// fetches blogs of all users
+func AllBlogsWithMeta(c *fiber.Ctx) error {
+	context := fiber.Map{
+		"statusText": "OK",
+		"msg":        "All Blogs with Meta",
+	}
+	searchQuery := c.Query("search")
+	var blogs []model.Blog
+	query := database.DBConn
+
+	if searchQuery != "" {
+		likePattern := "%" + searchQuery + "%"
+		query = query.Where("title LIKE ? OR post LIKE ?", likePattern, likePattern)
+	}
+	if err := query.Find(&blogs).Error; err != nil {
 		context["statusText"] = "error"
 		context["msg"] = "Failed to fetch blogs"
 		return c.Status(500).JSON(context)
@@ -386,6 +438,7 @@ func BlogListWithMeta(c *fiber.Ctx) error {
 			ID:        blog.ID,
 			Title:     blog.Title,
 			Post:      blog.Post,
+			UserID:    blog.UserID,
 			CreatedAt: blog.CreatedAt,
 			UpdatedAt: blog.UpdatedAt,
 			Likes:     likeCount,
@@ -394,5 +447,52 @@ func BlogListWithMeta(c *fiber.Ctx) error {
 	}
 
 	context["blogs"] = enrichedBlogs
+	return c.Status(200).JSON(context)
+}
+
+// fetches popular blogs based on likes
+func Top5PopularBlogs(c *fiber.Ctx) error {
+	context := fiber.Map{
+		"statusText": "OK",
+		"msg":        "Top 5 Popular Blogs",
+	}
+
+	type Result struct {
+		BlogID uint
+		Count  int64
+	}
+
+	var results []Result
+	// Step 1: Get top 5 blog IDs by like count
+	if err := database.DBConn.
+		Model(&model.Like{}).
+		Select("blog_id as blog_id, COUNT(*) as count").
+		Group("blog_id").
+		Order("count DESC").
+		Limit(5).
+		Scan(&results).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch top blogs"})
+	}
+	// log.Println("results---", results)
+	var popularblogs []BlogWithMeta
+	for _, res := range results {
+		var blog model.Blog
+		if err := database.DBConn.Where("id = ?", res.BlogID).Find(&blog).Error; err != nil {
+			continue
+		}
+
+		popularblogs = append(popularblogs, BlogWithMeta{
+			ID:        blog.ID,
+			Title:     blog.Title,
+			Post:      blog.Post,
+			UserID:    blog.UserID,
+			CreatedAt: blog.CreatedAt,
+			UpdatedAt: blog.UpdatedAt,
+			Likes:     res.Count,
+		})
+		// log.Println("popular blogs", popularblogs)
+	}
+	// log.Println("popular blogs---", popularblogs)
+	context["blogs"] = popularblogs
 	return c.Status(200).JSON(context)
 }
