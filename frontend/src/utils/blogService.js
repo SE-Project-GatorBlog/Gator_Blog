@@ -3,7 +3,7 @@ import api from './api';
 const BASE_URL = 'http://localhost:8000/api';
 
 const blogService = {
-  // Get all blogs, optionally filtered by title
+  // Original methods remain unchanged
   getAllBlogs: async (titleFilter = '') => {
     try {
       const url = titleFilter 
@@ -15,7 +15,7 @@ const blogService = {
       if (!response.ok) {
         const errorText = await response.text();
         let errorMessage;
-        tr
+        try {
           // Try to parse as JSON
           const errorData = JSON.parse(errorText);
           errorMessage = errorData.msg || 'Failed to fetch blogs';
@@ -170,12 +170,10 @@ const blogService = {
     }
   },
 
-  // Get comments for a blog post
   getComments: async (blogId) => {
     try {
-      // Use the specific endpoint for fetching comments by blog ID
       const response = await api.fetch(`${BASE_URL}/blogs/${blogId}/comments`, {
-        method: 'GET',
+        method: 'GET'
       });
       
       if (!response.ok) {
@@ -199,18 +197,17 @@ const blogService = {
     }
   },
 
-  // Add a comment to a blog post
   addComment: async (blogId, commentData) => {
     try {
       // Ensure a default user_id of 0 if not provided
       const data = {
         ...commentData,
-        user_id: commentData.user_id || 0,
+        user_id: commentData.user_id || 0
       };
       
       const response = await api.fetch(`${BASE_URL}/blogs/${blogId}/comments`, {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify(data)
       });
       
       if (!response.ok) {
@@ -237,91 +234,116 @@ const blogService = {
   // Get likes for a blog post
   getLikes: async (blogId) => {
     try {
-      // Use the specific endpoint for fetching likes by blog ID
-      const response = await api.fetch(`${BASE_URL}/blogs/${blogId}/likes`, {
+      // Ensure blogId is valid
+      if (!blogId) {
+        console.error("Invalid blogId provided to getLikes");
+        return [];
+      }
+      
+      const token = localStorage.getItem('token');
+      
+      // Use plain fetch to have more control
+      const response = await fetch(`${BASE_URL}/blogs/${blogId}/likes`, {
         method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token
+        }
       });
       
       if (!response.ok) {
-        const errorText = await response.text();
-        let errorMessage;
-        try {
-          // Try to parse as JSON
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData.msg || `Failed to fetch likes for blog ID ${blogId}`;
-        } catch (e) {
-          // If not valid JSON, use the text directly
-          errorMessage = errorText || `Error ${response.status}: ${response.statusText}`;
-        }
-        throw new Error(errorMessage);
+        console.error(`Error fetching likes: ${response.status}`);
+        return [];
       }
       
-      return await response.json();
+      const data = await response.json();
+      console.log("###");
+      console.log(data.likes);
+      //const data = response.json();
+      console.log(`Fetched ${data.likes} likes for post ${blogId}:`, data);
+      return Array.isArray(data) ? data : [data.likes];
     } catch (error) {
-      console.error(`Error fetching likes for blog ID ${blogId}:`, error);
-      throw error;
+      console.error("Error in getLikes:", error);
+      return [];
     }
   },
 
-  // Add a like to a blog post
-  addLike: async (blogId, likeData) => {
+  // Add a like to a blog post - FIXED WITH BETTER ERROR HANDLING
+  addLike: async (blogId) => {
     try {
-      // Ensure a default user_id of 0 if not provided
-      const data = {
-        ...likeData,
-        user_id: likeData.user_id || 0,
-      };
-      
-      const response = await api.fetch(`${BASE_URL}/blogs/${blogId}/likes`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorMessage;
-        try {
-          // Try to parse as JSON
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData.msg || `Failed to add like to blog ID ${blogId}`;
-        } catch (e) {
-          // If not valid JSON, use the text directly
-          errorMessage = errorText || `Error ${response.status}: ${response.statusText}`;
-        }
-        throw new Error(errorMessage);
+      // Ensure blogId is valid
+      if (!blogId) {
+        throw new Error("Invalid blogId provided to addLike");
       }
       
-      return await response.json();
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error("Authentication token missing. Please log in again.");
+      }
+      
+      console.log(`Sending POST request to add like for blog ID: ${blogId}`);
+      
+      // Simplified request - no body needed
+      const response = await fetch(`${BASE_URL}/blogs/${blogId}/likes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token
+        }
+        // No body needed as API extracts info from URL and token
+      });
+      
+      console.log(`Like response status: ${response.status} ${response.statusText}`);
+      
+      if (!response.ok) {
+        const responseText = await response.text();
+        console.error(`Error response: ${responseText}`);
+        throw new Error(`Failed to add like: ${response.statusText}`);
+      }
+      
+      // Return success
+      return { success: true };
     } catch (error) {
-      console.error(`Error adding like to blog ID ${blogId}:`, error);
+      console.error("Error in addLike:", error);
       throw error;
     }
   },
 
-  // Remove a like from a blog post
+  // Remove a like from a blog post - FIXED
   removeLike: async (blogId) => {
     try {
-      const response = await api.fetch(`${BASE_URL}/blogs/${blogId}/likes`, {
-        method: 'DELETE',
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorMessage;
-        try {
-          // Try to parse as JSON
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData.msg || `Failed to remove like from blog ID ${blogId}`;
-        } catch (e) {
-          // If not valid JSON, use the text directly
-          errorMessage = errorText || `Error ${response.status}: ${response.statusText}`;
-        }
-        throw new Error(errorMessage);
+      // Ensure blogId is valid
+      if (!blogId) {
+        throw new Error("Invalid blogId provided to removeLike");
       }
       
-      return true;
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error("Authentication token missing. Please log in again.");
+      }
+      
+      console.log(`Sending DELETE request for removing like from blog ID: ${blogId}`);
+      
+      // Use DELETE method to remove the like
+      const response = await fetch(`${BASE_URL}/blogs/${blogId}/likes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token
+        }
+      });
+      
+      console.log(`Unlike response status: ${response.status} ${response.statusText}`);
+      
+      if (!response.ok) {
+        const responseText = await response.text();
+        console.error(`Error response: ${responseText}`);
+        throw new Error(`Failed to remove like: ${response.statusText}`);
+      }
+      
+      return { success: true };
     } catch (error) {
-      console.error(`Error removing like from blog ID ${blogId}:`, error);
+      console.error("Error in removeLike:", error);
       throw error;
     }
   }

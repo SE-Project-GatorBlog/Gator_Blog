@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import blogService from '../../utils/blogService';
+import ImprovedLikeButton from '../Likes/LikeButton';
 
 const PostDetailPage = () => {
   const { id } = useParams();
@@ -22,11 +23,13 @@ const PostDetailPage = () => {
     const fetchPostData = async () => {
       setIsLoading(true);
       try {
+        console.log(`Fetching post data for ID: ${id}`);
         // First, try to get the specific blog post by ID
         const response = await blogService.getBlogById(id);
         
         if (response && response.blog) {
           const blog = response.blog;
+          console.log("Received blog data:", blog);
           
           // Format the post data
           setPost({
@@ -57,6 +60,7 @@ const PostDetailPage = () => {
           fetchComments(blog.ID || blog.id);
           checkIfLiked(blog.ID || blog.id);
         } else {
+          console.error("No blog data found in response", response);
           setError(`Post with ID ${id} not found`);
         }
       } catch (err) {
@@ -72,7 +76,10 @@ const PostDetailPage = () => {
   
   const fetchComments = async (blogId) => {
     try {
+      console.log(`Fetching comments for blog ID: ${blogId}`);
       const commentsData = await blogService.getComments(blogId);
+      console.log(`Received ${commentsData.length} comments:`, commentsData);
+      
       setComments(commentsData || []);
       setCommentsCount(commentsData.length || 0);
     } catch (err) {
@@ -83,11 +90,14 @@ const PostDetailPage = () => {
   
   const checkIfLiked = async (blogId) => {
     try {
+      console.log(`Checking like status for blog ID: ${blogId}`);
       const likes = await blogService.getLikes(blogId);
+      console.log(`Received ${likes.length} likes:`, likes);
       
       // Check if current user has liked this post (if user exists)
       if (user) {
         const userLiked = likes.some(like => like.user_id === user.id);
+        console.log(`User ${user.id} has ${userLiked ? 'liked' : 'not liked'} this post`);
         setIsLiked(userLiked);
       }
       
@@ -104,23 +114,26 @@ const PostDetailPage = () => {
     setIsSubmittingLike(true);
     
     try {
+      console.log(`[PostDetail] Toggling like for post ${post.id}, current status: ${isLiked ? 'liked' : 'not liked'}`);
+      
       if (isLiked) {
-        // Unlike the post
+        // Unlike the post - API extracts necessary data from request
+        console.log(`[PostDetail] Removing like from post ${post.id}`);
         await blogService.removeLike(post.id);
         setIsLiked(false);
         setLikesCount(prev => Math.max(0, prev - 1));
+        console.log(`[PostDetail] Like removed, new count: ${Math.max(0, likesCount - 1)}`);
       } else {
-        // Like the post
-        await blogService.addLike(post.id, {
-          user_id: user ? user.id : 0, // Use 0 or another default if no user
-          blog_id: post.id
-        });
+        // Like the post - API extracts necessary data from request
+        console.log(`[PostDetail] Adding like to post ${post.id}`);
+        await blogService.addLike(post.id);
         setIsLiked(true);
         setLikesCount(prev => prev + 1);
+        console.log(`[PostDetail] Like added, new count: ${likesCount + 1}`);
       }
     } catch (err) {
-      console.error('Error toggling like:', err);
-      alert('Failed to update like status');
+      console.error('[PostDetail] Error toggling like:', err);
+      alert('Failed to update like status. Please try again.');
     } finally {
       setIsSubmittingLike(false);
     }
@@ -136,13 +149,16 @@ const PostDetailPage = () => {
     setIsSubmittingComment(true);
     
     try {
+      console.log(`Adding comment to post ${post.id}`);
       const commentData = {
         content: newComment,
         user_id: user ? user.id : 0, // Use 0 or another default if no user
         blog_id: post.id
       };
       
+      console.log('Comment data:', commentData);
       const addedComment = await blogService.addComment(post.id, commentData);
+      console.log('Added comment response:', addedComment);
       
       // Add the new comment to the comments array
       setComments(prev => [...prev, {
@@ -276,21 +292,16 @@ const PostDetailPage = () => {
             </div>
             
             <div className="flex space-x-4">
-              <button 
-                onClick={handleLike}
-                disabled={isSubmittingLike}
-                className={`px-4 py-2 rounded-lg flex items-center ${
-                  isLiked 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill={isLiked ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                </svg>
-                {isSubmittingLike ? 'Processing...' : `${likesCount} Likes`}
-              </button>
-              
+            <ImprovedLikeButton 
+              postId={post.id}
+              initialLikeCount={likesCount}
+              initialIsLiked={isLiked}
+              size="medium"
+              onLikeUpdate={(postId, updatedLiked, newCount) => {
+                setIsLiked(updatedLiked);
+                setLikesCount(newCount);
+              }}
+            />
               <div className="bg-gray-200 px-4 py-2 rounded-lg flex items-center text-gray-700">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" />

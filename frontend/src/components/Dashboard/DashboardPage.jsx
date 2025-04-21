@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import blogService from '../../utils/blogService';
+import ImprovedLikeButton from '../Likes/LikeButton';
 import gatorImage from '../../assets/images/DashboardGator.png';
+import { useNavigate, useLocation } from 'react-router-dom';
+
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -11,13 +13,17 @@ const Dashboard = () => {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const location = useLocation();
   const [deleteConfirmation, setDeleteConfirmation] = useState({ show: false, postId: null });
   
   const fetchPosts = useCallback(async (titleFilter = '') => {
     setIsLoading(true);
     try {
+      console.log(`Fetching posts with title filter: "${titleFilter}"`);
+      
       // Use the existing getAllBlogs function which works
       const data = await blogService.getAllBlogs(titleFilter);
+      console.log(`Received ${data.blogs ? data.blogs.length : 0} posts from API`);
       
       // Process blog data
       const formattedPosts = data.blogs ? data.blogs.map(blog => ({
@@ -52,19 +58,26 @@ const Dashboard = () => {
       
       // For each post, fetch likes and comments counts
       if (formattedPosts.length > 0) {
+        console.log(`Fetching likes and comments for ${formattedPosts.length} posts`);
+        
         await Promise.all(formattedPosts.map(async (post) => {
           try {
             // Fetch likes for this post
+            console.log(`Fetching likes for post ${post.id}`);
             const likes = await blogService.getLikes(post.id);
+            console.log(`Received ${likes.length} likes for post ${post.id}`);
             post.likes = likes.length || 0;
             
             // Check if the current user has liked this post
             if (user) {
-              post.isLiked = likes.some(like => like.user_id === user.id);
+              post.isLiked = likes.some(like => Number(like.user_id) === Number(user.id));
+              console.log(`User ${user.id} has ${post.isLiked ? 'liked' : 'not liked'} post ${post.id}`);
             }
             
             // Fetch comments for this post
+            console.log(`Fetching comments for post ${post.id}`);
             const comments = await blogService.getComments(post.id);
+            console.log(`Received ${comments.length} comments for post ${post.id}`);
             post.comments = comments.length || 0;
           } catch (err) {
             console.error(`Error fetching interaction data for post ${post.id}:`, err);
@@ -73,6 +86,7 @@ const Dashboard = () => {
         }));
       }
       
+      console.log('Finished processing all posts, setting state');
       setPosts(formattedPosts);
     } catch (err) {
       console.error('Error fetching posts:', err);
@@ -86,6 +100,10 @@ const Dashboard = () => {
     // Fetch posts when component mounts
     fetchPosts();
   }, [fetchPosts]);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [location.pathname]); // triggers every time route changes  
 
   const handleLogout = () => {
     logout();
@@ -125,10 +143,12 @@ const Dashboard = () => {
   
   const handleConfirmDelete = async () => {
     try {
+      console.log(`Deleting post ${deleteConfirmation.postId}`);
       await blogService.deleteBlog(deleteConfirmation.postId);
       
       // Remove the deleted post from the local state
       setPosts(posts.filter(post => post.id !== deleteConfirmation.postId));
+      console.log(`Post ${deleteConfirmation.postId} deleted successfully`);
       
       // Hide the confirmation dialog
       setDeleteConfirmation({ show: false, postId: null });
@@ -138,49 +158,18 @@ const Dashboard = () => {
     }
   };
   
-  // Function to handle liking a post
-  const handleLike = async (postId, isLiked, e) => {
-    e.stopPropagation(); // Prevent triggering the parent onClick
-    
-    try {
-      if (isLiked) {
-        // Unlike the post
-        await blogService.removeLike(postId);
-        
-        // Update the local state
-        setPosts(posts.map(post => {
-          if (post.id === postId) {
-            return {
-              ...post,
-              isLiked: false,
-              likes: Math.max(0, post.likes - 1)
-            };
-          }
-          return post;
-        }));
-      } else {
-        // Like the post
-        await blogService.addLike(postId, {
-          user_id: user ? user.id : 0, // Use 0 if no user is logged in
-          blog_id: postId
-        });
-        
-        // Update the local state
-        setPosts(posts.map(post => {
-          if (post.id === postId) {
-            return {
-              ...post,
-              isLiked: true,
-              likes: post.likes + 1
-            };
-          }
-          return post;
-        }));
+  // Function to handle like updates from ImprovedLikeButton component
+  const handleLikeUpdate = (postId, isLiked, newCount) => {
+    setPosts(posts.map(post => {
+      if (post.id === postId) {
+        return {
+          ...post,
+          isLiked: isLiked,
+          likes: newCount !== undefined ? newCount : (isLiked ? post.likes + 1 : Math.max(0, post.likes - 1))
+        };
       }
-    } catch (err) {
-      console.error('Error toggling like:', err);
-      alert('Failed to update like status');
-    }
+      return post;
+    }));
   };
 
   // Function to safely render HTML content
@@ -375,19 +364,14 @@ const Dashboard = () => {
               
               <div className="flex items-center justify-between">
                 <div className="flex gap-4">
-                  <button 
-                    onClick={(e) => handleLike(post.id, post.isLiked, e)}
-                    className={`px-3 py-1 rounded-full text-sm flex items-center ${
-                      post.isLiked 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill={post.isLiked ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                    </svg>
-                    {post.likes}
-                  </button>
+                  {/* Use the ImprovedLikeButton component instead of a custom button */}
+                  <ImprovedLikeButton 
+                    postId={post.id}
+                    initialLikeCount={post.likes}
+                    initialIsLiked={post.isLiked}
+                    size="medium"
+                    onLikeUpdate={handleLikeUpdate}
+                  />
                   <div className="bg-gray-200 px-3 py-1 rounded-full text-sm flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" />

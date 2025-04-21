@@ -21,15 +21,21 @@ func LikeBlog(c *fiber.Ctx) error {
 	}
 
 	// Prevent duplicate like
-	var existing model.Like
-	database.DBConn.Where("user_id = ? AND blog_id = ?", user.ID, blog.ID).First(&existing)
-	if existing.ID != 0 {
-		return c.Status(400).JSON(fiber.Map{"msg": "Already liked"})
-	}
+	// var existing model.Like
+	// database.DBConn.Where("user_id = ? AND blog_id = ?", user.ID, blog.ID).First(&existing)
+	// if existing.ID != 0 {
+	// 	return c.Status(400).JSON(fiber.Map{"msg": "Already liked"})
+	// }
 
 	like := model.Like{
 		UserID: user.ID,
 		BlogID: blog.ID,
+	}
+
+	result := database.DBConn.Where("user_id = ? AND blog_id = ?", user.ID, blog.ID).Delete(&like)
+
+	if result.RowsAffected > 0 {
+		return c.Status(200).JSON(fiber.Map{"msg": "Like removed successfully"})
 	}
 
 	if err := database.DBConn.Create(&like).Error; err != nil {
@@ -37,6 +43,30 @@ func LikeBlog(c *fiber.Ctx) error {
 	}
 	return c.Status(201).JSON(like)
 }
+
+// func UnlikeBlog(c *fiber.Ctx) error {
+//     userEmail := c.Locals("userEmail").(string)
+//     var user model.User
+//     if err := database.DBConn.Where("email = ?", userEmail).First(&user).Error; err != nil {
+//         return c.Status(404).JSON(fiber.Map{"error": "User not found"})
+//     }
+
+//     blogIDParam := c.Params("id")
+//     var blog model.Blog
+//     if err := database.DBConn.Where("id = ?", blogIDParam).First(&blog).Error; err != nil {
+//         return c.Status(404).JSON(fiber.Map{"error": "Blog not found"})
+//     }
+
+//     // Find the existing like
+//     var like model.Like
+//     result := database.DBConn.Where("user_id = ? AND blog_id = ?", user.ID, blog.ID).Delete(&like)
+
+//     if result.RowsAffected == 0 {
+//         return c.Status(404).JSON(fiber.Map{"error": "Like not found"})
+//     }
+
+//     return c.Status(200).JSON(fiber.Map{"msg": "Like removed successfully"})
+// }
 
 func GetLikesByBlogID(c *fiber.Ctx) error {
 	blogID := c.Params("id")
