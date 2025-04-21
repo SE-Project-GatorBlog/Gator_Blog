@@ -21,8 +21,13 @@ const ProfilePage = () => {
     try {
       const data = await blogService.getAllBlogs();
       
+      // Filter only posts from the current user
+      const userBlogs = data.blogs ? data.blogs.filter(blog => 
+        blog.user_id === user?.id || blog.AuthorID === user?.id
+      ) : [];
+      
       // Process blog data
-      const formattedPosts = data.blogs ? data.blogs.map(blog => ({
+      const formattedPosts = userBlogs.map(blog => ({
         id: blog.ID,
         username: user?.username || 'User',
         date: new Date(blog.created_at || blog.CreatedAt).toLocaleString('en-US', {
@@ -35,9 +40,24 @@ const ProfilePage = () => {
         title: blog.Title,
         content: blog.Post, // This is the HTML content
         createdAt: blog.created_at || blog.CreatedAt,
-        likes: 0, // Placeholder - backend doesn't yet support likes
-        comments: 0 // Placeholder - backend doesn't yet support comments
-      })) : [];
+        likes: blog.Likes || 0, 
+        comments: blog.Comments || 0,
+        authorId: blog.user_id || blog.AuthorID
+      }));
+      
+      // For each post, fetch the current likes and comments count
+      await Promise.all(formattedPosts.map(async (post) => {
+        try {
+          const likes = await blogService.getLikes(post.id);
+          post.likesCount = likes.length || 0;
+          post.isLiked = likes.some(like => like.user_id === user.id);
+          
+          const comments = await blogService.getComments(post.id);
+          post.commentsCount = comments.length || 0;
+        } catch (error) {
+          console.error(`Error fetching interactions for post ${post.id}:`, error);
+        }
+      }));
       
       setUserPosts(formattedPosts);
     } catch (err) {
@@ -108,6 +128,55 @@ const ProfilePage = () => {
     } catch (error) {
       console.error('Error deleting post:', error);
       alert('Failed to delete post. Please try again.');
+    }
+  };
+  
+  const handleLike = async (postId, isLiked, e) => {
+    e.stopPropagation(); // Prevent triggering the parent onClick
+    
+    if (!user) {
+      alert('Please log in to like posts');
+      return;
+    }
+    
+    try {
+      if (isLiked) {
+        // Unlike the post
+        await blogService.removeLike(postId);
+        
+        // Update the local state
+        setUserPosts(userPosts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              isLiked: false,
+              likesCount: Math.max(0, post.likesCount - 1)
+            };
+          }
+          return post;
+        }));
+      } else {
+        // Like the post
+        await blogService.addLike(postId, {
+          user_id: user.id,
+          blog_id: postId
+        });
+        
+        // Update the local state
+        setUserPosts(userPosts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              isLiked: true,
+              likesCount: (post.likesCount || 0) + 1
+            };
+          }
+          return post;
+        }));
+      }
+    } catch (err) {
+      console.error('Error toggling like:', err);
+      alert('Failed to update like status');
     }
   };
 
@@ -315,11 +384,24 @@ const ProfilePage = () => {
                 <div className="p-4 bg-gray-50 border-t">
                   <div className="flex items-center justify-between">
                     <div className="flex gap-3">
-                      <div className="bg-gray-200 px-2 py-1 rounded-full text-xs">
-                        Likes: {post.likes}
-                      </div>
-                      <div className="bg-gray-200 px-2 py-1 rounded-full text-xs">
-                        Comments: {post.comments}
+                      <button 
+                        onClick={(e) => handleLike(post.id, post.isLiked, e)}
+                        className={`px-2 py-1 rounded-full text-xs flex items-center ${
+                          post.isLiked 
+                          ? 'bg-blue-500 text-white' 
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill={post.isLiked ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                        </svg>
+                        {post.likesCount || post.likes || 0}
+                      </button>
+                      <div className="bg-gray-200 px-2 py-1 rounded-full text-xs flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" />
+                        </svg>
+                        {post.commentsCount || post.comments || 0}
                       </div>
                     </div>
                     <div className="flex space-x-2">
@@ -331,13 +413,19 @@ const ProfilePage = () => {
                       </button>
                       <button 
                         className="bg-[#0021A5] text-white px-3 py-1 rounded-lg text-sm hover:bg-[#001B8C]"
-                        onClick={() => handleEditPost(post.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditPost(post.id);
+                        }}
                       >
                         Edit
                       </button>
                       <button 
                         className="bg-red-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-700"
-                        onClick={() => handleDeleteClick(post.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteClick(post.id);
+                        }}
                       >
                         Delete
                       </button>

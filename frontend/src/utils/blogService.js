@@ -1,4 +1,3 @@
-// utils/blogService.js
 import api from './api';
 
 const BASE_URL = 'http://localhost:8000/api';
@@ -16,7 +15,7 @@ const blogService = {
       if (!response.ok) {
         const errorText = await response.text();
         let errorMessage;
-        try {
+        tr
           // Try to parse as JSON
           const errorData = JSON.parse(errorText);
           errorMessage = errorData.msg || 'Failed to fetch blogs';
@@ -146,7 +145,6 @@ const blogService = {
   // Delete a blog
   deleteBlog: async (id) => {
     try {
-
       const response = await api.fetch(`${BASE_URL}/blogs/${id}`, {
         method: 'DELETE'
       });
@@ -168,6 +166,162 @@ const blogService = {
       return await response.json();
     } catch (error) {
       console.error(`Error deleting blog with ID ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Get comments for a blog post
+  getComments: async (blogId) => {
+    try {
+      // Use the specific endpoint for fetching comments by blog ID
+      const response = await api.fetch(`${BASE_URL}/blogs/${blogId}/comments`, {
+        method: 'GET',
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage;
+        try {
+          // Try to parse as JSON
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.msg || `Failed to fetch comments for blog ID ${blogId}`;
+        } catch (e) {
+          // If not valid JSON, use the text directly
+          errorMessage = errorText || `Error ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error(`Error fetching comments for blog ID ${blogId}:`, error);
+      throw error;
+    }
+  },
+
+  // Add a comment to a blog post
+  addComment: async (blogId, commentData) => {
+    try {
+      // Ensure a default user_id of 0 if not provided
+      const data = {
+        ...commentData,
+        user_id: commentData.user_id || 0,
+      };
+      
+      const response = await api.fetch(`${BASE_URL}/blogs/${blogId}/comments`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage;
+        try {
+          // Try to parse as JSON
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.msg || `Failed to add comment to blog ID ${blogId}`;
+        } catch (e) {
+          // If not valid JSON, use the text directly
+          errorMessage = errorText || `Error ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error(`Error adding comment to blog ID ${blogId}:`, error);
+      throw error;
+    }
+  },
+
+  // Get likes for a blog post
+  getLikes: async (blogId) => {
+    try {
+      // Use the specific endpoint for fetching likes by blog ID
+      const response = await api.fetch(`${BASE_URL}/blogs/${blogId}/likes`, {
+        method: 'GET',
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage;
+        try {
+          // Try to parse as JSON
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.msg || `Failed to fetch likes for blog ID ${blogId}`;
+        } catch (e) {
+          // If not valid JSON, use the text directly
+          errorMessage = errorText || `Error ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error(`Error fetching likes for blog ID ${blogId}:`, error);
+      throw error;
+    }
+  },
+
+  // Add a like to a blog post
+  addLike: async (blogId, likeData) => {
+    try {
+      // Ensure a default user_id of 0 if not provided
+      const data = {
+        ...likeData,
+        user_id: likeData.user_id || 0,
+      };
+      
+      const response = await api.fetch(`${BASE_URL}/blogs/${blogId}/likes`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage;
+        try {
+          // Try to parse as JSON
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.msg || `Failed to add like to blog ID ${blogId}`;
+        } catch (e) {
+          // If not valid JSON, use the text directly
+          errorMessage = errorText || `Error ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error(`Error adding like to blog ID ${blogId}:`, error);
+      throw error;
+    }
+  },
+
+  // Remove a like from a blog post
+  removeLike: async (blogId) => {
+    try {
+      const response = await api.fetch(`${BASE_URL}/blogs/${blogId}/likes`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage;
+        try {
+          // Try to parse as JSON
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.msg || `Failed to remove like from blog ID ${blogId}`;
+        } catch (e) {
+          // If not valid JSON, use the text directly
+          errorMessage = errorText || `Error ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error(`Error removing like from blog ID ${blogId}:`, error);
       throw error;
     }
   }
