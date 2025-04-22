@@ -22,89 +22,91 @@ The goal of Sprint 4 was to finalize the Gator Blog platform by implementing int
 - [Backend Part 2](https://youtu.be/9FZ-9FlxOgM)
 - [Frontend](https://drive.google.com/file/d/15_PIRpPU7T85ykLGW5ITeUEGOjsNH4XP/view?usp=share_link)
 - Link to the Repository: https://github.com/SE-Project-GatorBlog/Gator_Blog/
+
 ---
 
 ## 3. User Stories
-
 | User Stories | Explanation | Implemented |
-|-------------|-------------|--------------|
-| As a user, I want to be able to delete my posted blogs | To allow users to manage and remove their own content | ✅ |
-| As a user, I want to be able to post blogs so that I can share my thoughts, insights, and updates with others | To enable content creation and sharing | ✅ |
-| As a user, I want to create a profile for my user dashboard | To personalize the user experience and enable profile management | ✅ |
-| As a Developer, I want to validate email utility using standalone testing to ensure email delivery | To ensure that emails are properly sent during password reset | ✅ |
-| As a Developer, I want to test the complete forgot password flow from email to reset | To validate end-to-end functionality of the password reset feature | ✅ |
-| As a Backend Developer, I want to test the Reset Password API to confirm secure password update | To ensure password updates are secure and functioning | ✅ |
-| As a Backend Developer, I want to test the Verify Reset Code API for valid and expired codes | To validate proper behavior for reset code verification | ✅ |
-| As a Backend Developer, I want to test the Request Reset Code API to ensure it sends emails correctly | To confirm reset code emails are being sent successfully | ✅ |
-| As a Backend Developer, I want to configure the email utility to send password reset codes using Gmail SMTP | To implement actual email delivery for password reset | ✅ |
-| As a Backend Developer, I want to test create, update, view and delete the posts | To ensure all blog CRUD operations function properly | ✅ |
-| As a Backend Developer, I want to implement the Reset Password API to securely update the user's password after verification | To complete the forgot password flow securely | ✅ |
-| As a Backend Developer, I want to create, update, view and delete the posts | To implement complete blog management features | ✅ |
-| As a Backend Developer, I want to implement the Verify Reset Code API to check the validity of the entered code | To verify reset code before allowing password change | ✅ |
-| As a Backend Developer, I want to implement the Request Reset Code API to send a verification code to the user's email | To start the password reset process securely | ✅ |
-| As a Backend Developer, I want to Setup Redis Integration | To enable server-side caching and improve performance | ✅ |
-| As a Backend Developer, I want to Implement Blog Caching with Redis | To cache blog data for faster retrieval and reduced DB load | ✅ |
-| As a Backend Developer, I want to Invalidate Redis Cache on Blog Updates and Deletions | To ensure data consistency between cache and database | ✅ |
-| As a Backend developer, I want to implement Fallback Mechanism for Cache Failures | To maintain availability in case Redis becomes unavailable | ✅ |
-| As a Backend developer, I want to Optimizate Cache Key | To organize and index cache entries more efficiently | ✅ |
-| As a user, I want to be able to like blog posts | To engage with content and show appreciation | ❌ |
-| As a user, I want to comment on blog posts | To interact with blog authors and other readers | ❌ |
-| As a frontend developer, I want to implement blog search and filter by category | To improve content discoverability | ❌ |
-
-
-### 3.1 Reasons for Not Implementing Certain Features
-
-- **Commenting on Blog Posts:** This feature was deprioritized in Sprint 1 as the focus was on establishing core authentication and backend setup. It will be implemented in the next sprint.  
-- **Liking Blog Posts:** Implementing a like feature requires additional modifications to the database schema and was planned for a future sprint to maintain the sprint timeline.  
-- **Search and Filter Functionality:** This feature was postponed due to prioritization of core profile and CRUD functionalities. It involves additional frontend logic and API query handling which will be taken up in the next sprint.
+|--------------|-------------|-------------|
+| As a user, I want to like blog posts | To express appreciation for valuable content | ✅ |
+| As a user, I want to comment on blog posts | To engage in discussions and provide feedback | ✅ |
+| As a user, I want to view the top 5 popular blogs | To explore the most liked content | ✅ |
+| As a user, I want to view blogs with metadata such as comments and likes | So I get a richer view of the blog's engagement | ✅ |
+| As a user, I want to see all blogs posted by a particular user | So I can explore their content from their profile page | ✅ |
+| As a backend developer, I want to implement API endpoints for likes and comments | So the frontend can enable user engagement features | ✅ |
+| As a backend developer, I want to develop metadata endpoints to return blog details with likes and comments | So the frontend can display engagement stats | ✅ |
+| As a backend developer, I want to implement logic to fetch the top 5 most liked blogs | So we can support content discovery | ✅ |
+| As a backend developer, I want to write unit tests for all new endpoints | To ensure that they function reliably under all conditions | ✅ |
+| As a frontend developer, I want to display blog engagement metadata (likes, comments) | So users can interact with blogs more meaningfully | ✅ |
+| As a frontend developer, I want to allow liking and commenting on blogs via UI | So users can actively participate | ✅ |
+| As a frontend developer, I want to write Cypress tests for interactive blog features | To ensure frontend behavior is reliable | ✅ |
+| As a frontend developer, I want to unit test like and comment components | To maintain UI consistency and correctness | ✅ |
 
 ---
 
 ## 4. Tasks Completed
-### Backend Setup:
-- Implemented the complete Forgot Password flow using three secure APIs: 
-  - `POST /request-reset-code` to send a reset code via email, 
-  - `POST /verify-reset-code` to validate the reset code, and 
-  - `POST /reset-password` to allow users to securely reset their passwords.  
-  These APIs include validations, email utility integration, and error handling for robust user support.
+### Backend:
+- **Implemented Likes and Comments Functionality:**
+  - Added support for users to interact with blog posts through likes and comments.
+  - Developed two APIs each:
+    - `POST /blogs/:id/comments`: Add a comment to a blog post.
+    - `GET /blogs/:id/comments`: Retrieve all comments for a blog.
+    - `POST /blogs/:id/likes`: Register a like on a blog post.
+    - `GET /blogs/:id/likes`: Retrieve all likes for a blog post.
+  - Built proper association logic in the backend to ensure comments and likes are linked with users and blog posts.
 
-- Developed full CRUD (Create, Read, Update, Delete) functionality for blogs through RESTful APIs, allowing   authenticated users to manage their content effectively:
-  - `GET /blogs` - Retrieve blogs belonging to the logged-in user
-  - `POST /blogs` - Create a new blog post
-  - `PUT /blogs/:id` - Update an existing blog
-  - `DELETE /blogs/:id` - Remove a blog post
-  
-- Enhanced database schema to support password reset flow and blog metadata tracking by introducing new fields in the `users` and `blogs` tables. This included fields for storing reset codes, code expiry timestamps, and automatic tracking of blog creation and update times.
-  
-- Redis caching was implemented to optimize performance by reducing redundant database queries. Frequently accessed data, such as user session details and blog content, is now cached in Redis, significantly improving response times and reducing database load.
+- **Created Enhanced Data Retrieval Endpoints:**
+  - `GET /blogs-with-meta`: Returns blogs with embedded metadata including like count and comments.
+  - `GET /top-popular-blogs`: Fetches the top 5 blogs based on the number of likes.
+  - `GET /all-blogs-with-meta`: Returns all blogs along with associated likes and comments.
+  - These endpoints help power dashboards and analytics components.
 
-- Performed extensive unit testing using mock databases to simulate real scenarios. Covered edge cases, error responses, and user-specific validations for all new APIs to ensure system reliability and correctness.
-  
-### Frontend Setup:
-- Designed and implemented the User Profile page, including editable fields to display and update user information, all fully integrated with backend APIs.
-  
-- Integrated all newly developed blog CRUD API within the frontend, ensuring users can create, update, delete, and view their own blogs seamlessly via intuitive UI interactions.
-  
-- Wrote Cypress end-to-end (E2E) tests to simulate real user behavior for all profile and blog operations, ensuring consistent frontend-backend interaction.
-  
-- Implemented unit tests for key frontend components using React Testing Library to ensure UI rendering and logic correctness.
+- **Testing:**
+  - Wrote extensive unit tests using mock databases to cover:
+    - Posting and retrieving comments.
+    - Posting and retrieving likes.
+    - Metadata retrieval, edge cases, and invalid inputs.
+  - Validated all new features against security and data consistency checks.
 
+- **Database Logic Integration:**
+  - Connected new `likes` and `comments` models with users and blogs.
+  - Ensured transactional integrity during creation and deletion processes to prevent orphan records.
+
+### Frontend:
+- **Comments and Likes Integration:**
+  - Designed interactive components to allow users to:
+    - Add comments via input fields on blog detail pages.
+    - Like/unlike blog posts with toggle-able UI elements.
+  - Rendered metadata (like count, comment count) on blog cards and detailed views.
+
+- **UI Enhancements and Final Integration:**
+  - Refined styling, responsiveness, and user flow across pages.
+  - Ensured real-time updates on blog interaction (e.g., incrementing like count without refresh).
+  - Handled edge cases like duplicate likes and empty comment submissions with appropriate feedback.
+
+- **Testing:**
+  - Used Cypress to write full end-to-end tests for:
+    - Commenting on blogs.
+    - Liking/unliking blogs.
+    - Verifying data updates visually in the UI.
+  - Added Jest unit tests for:
+    - UI components for likes/comments.
+    - Functions handling API communication and state updates.
 
 ### Database:
-- Updated MySQL schema to store user profile details.
-- Added constraints and validations to prevent invalid data entry.
+- **New Tables Created:**
+  - `likes` table:
+    - Fields: `id`, `blog_id`, `user_id`, `created_at`
+    - Constraints: one like per user per blog (unique constraint).
+  - `comments` table:
+    - Fields: `id`, `blog_id`, `user_id`, `content`, `created_at`
+    - Supports multiple comments per user per blog with full timestamp history.
   
-- Modified the `users` table by adding two new fields:
-  - `reset_code` – stores the one-time code sent for password reset
-  - `reset_code_expiry` – timestamp indicating the expiration of the reset code  
-  These fields enable secure handling of the forgot password feature.
+- **Schema Integrations:**
+  - Established foreign key relationships with `blogs` and `users`.
+  - Applied indexing and query optimization for fast lookups (especially for `top-popular-blogs`).
+  - Ensured schema supports efficient joins and aggregations for metadata APIs.
 
-- Updated the `blogs` table to include:
-  - `created_at` and `updated_at` timestamps  
-  This helps in tracking blog creation and modification history for improved sorting, filtering, and version control.
-- Integrated Redis caching to improve database performance:
-  - Cached frequently accessed data, such as user session details and blog content, to reduce redundant queries.
-  - Improved response times and optimized backend performance by reducing direct database load.
 
 ### Deployment & DevOps:
 - Resolved API connection issues between frontend and backend.
@@ -112,54 +114,19 @@ The goal of Sprint 4 was to finalize the Gator Blog platform by implementing int
 
 ---
 
-
 # API Documentation
 
-## Blog APIs (JWT Protected)
+## Engagement & Metadata APIs (JWT Protected)
 
-### 1. Get Blog List  
-**Endpoint:** GET /api/blogs  
-**Description:** Fetches all blogs for the authenticated user.  
-**Headers:**  
-`Authorization: Bearer <jwt_token>`
-
-**Response:**
-- **200 OK** (Success)
-```json
-{
-  "statusText": "OK",
-  "msg": "Blog List",
-  "blogs": [
-    {
-      "id": 1,
-      "title": "My First Blog",
-      "post": "This is my first blog content...",
-      "user_id": 123
-    }
-  ]
-}
-```
-
-- **401 Unauthorized** (Missing/invalid token)
-```json
-{
-  "statusText": "error",
-  "msg": "Unauthorized"
-}
-```
-
----
-
-### 2. Create Blog  
-**Endpoint:** POST /api/blogs  
-**Description:** Creates a new blog post for the authenticated user.  
+### 1. Add Comment to Blog  
+**Endpoint:** POST /api/blogs/:id/comments  
+**Description:** Adds a comment to the specified blog post.  
 **Headers:**  
 `Authorization: Bearer <jwt_token>`  
 **Request Body:**
 ```json
 {
-  "title": "New Blog Title",
-  "post": "This is the content of the new blog."
+  "comment": "Great blog post!"
 }
 ```
 
@@ -168,51 +135,15 @@ The goal of Sprint 4 was to finalize the Gator Blog platform by implementing int
 ```json
 {
   "statusText": "OK",
-  "msg": "Blog created successfully",
-  "blog": {
-    "id": 2,
-    "title": "New Blog Title",
-    "post": "This is the content of the new blog.",
-    "user_id": 123
-  }
+  "msg": "Comment added successfully"
 }
 ```
 
 ---
 
-### 3. Update Blog  
-**Endpoint:** PUT /api/blogs/:id  
-**Description:** Updates an existing blog post.  
-**Headers:**  
-`Authorization: Bearer <jwt_token>`  
-**Request Body:**
-```json
-{
-  "title": "Updated Blog Title",
-  "post": "Updated content for the blog."
-}
-```
-
-**Response:**
-- **200 OK**
-```json
-{
-  "statusText": "OK",
-  "msg": "Blog updated successfully",
-  "blog": {
-    "id": 2,
-    "title": "Updated Blog Title",
-    "post": "Updated content for the blog.",
-    "user_id": 123
-  }
-}
-```
-
----
-
-### 4. Delete Blog  
-**Endpoint:** DELETE /api/blogs/:id  
-**Description:** Deletes a blog post.  
+### 2. Get Comments by Blog ID  
+**Endpoint:** GET /api/blogs/:id/comments  
+**Description:** Retrieves all comments for a specific blog post.  
 **Headers:**  
 `Authorization: Bearer <jwt_token>`
 
@@ -221,141 +152,170 @@ The goal of Sprint 4 was to finalize the Gator Blog platform by implementing int
 ```json
 {
   "statusText": "OK",
-  "msg": "Blog deleted successfully"
+  "msg": "Comments fetched successfully",
+  "comments": [
+    {
+      "id": 1,
+      "user_id": 101,
+      "blog_id": 5,
+      "comment": "Nice post!",
+      "created_at": "2025-04-21T10:00:00Z"
+    }
+  ]
 }
 ```
 
 ---
 
-## Forgot Password APIs
-
-### 5. Request Reset Code  
-**Endpoint:** POST /api/request-reset-code  
-**Description:** Sends a reset code to the user's email address.  
-**Request Body:**
-```json
-{
-  "email": "user@example.com"
-}
-```
+### 3. Like a Blog  
+**Endpoint:** POST /api/blogs/:id/likes  
+**Description:** Registers a like from the authenticated user for the specified blog post.  
+**Headers:**  
+`Authorization: Bearer <jwt_token>`
 
 **Response:**
 - **200 OK**
 ```json
 {
   "statusText": "OK",
-  "msg": "Reset code sent successfully"
+  "msg": "Blog liked successfully"
 }
 ```
 
 ---
 
-### 6. Verify Reset Code  
-**Endpoint:** POST /api/verify-reset-code  
-**Description:** Verifies the reset code submitted by the user.  
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "code": "123456"
-}
-```
+### 4. Get Likes by Blog ID  
+**Endpoint:** GET /api/blogs/:id/likes  
+**Description:** Retrieves the number of likes for a specific blog post.  
+**Headers:**  
+`Authorization: Bearer <jwt_token>`
 
 **Response:**
 - **200 OK**
 ```json
 {
   "statusText": "OK",
-  "msg": "Reset code verified successfully"
-}
-```
-
-- **400 Bad Request**
-```json
-{
-  "statusText": "error",
-  "msg": "Invalid or expired code"
+  "msg": "Likes fetched successfully",
+  "like_count": 24
 }
 ```
 
 ---
 
-### 7. Reset Password  
-**Endpoint:** POST /api/reset-password  
-**Description:** Resets the user's password after code verification.  
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "code": "123456",
-  "new_password": "newsecurepassword"
-}
-```
+### 5. Get Blogs with Metadata  
+**Endpoint:** GET /api/blogs-with-meta  
+**Description:** Fetches blogs with associated metadata like likes and comments.  
+**Headers:**  
+`Authorization: Bearer <jwt_token>`
 
 **Response:**
 - **200 OK**
 ```json
 {
   "statusText": "OK",
-  "msg": "Password reset successful"
+  "msg": "Blogs with metadata",
+  "blogs": [
+    {
+      "id": 1,
+      "title": "Meta Blog",
+      "likes": 12,
+      "comments": 4
+    }
+  ]
+}
+```
+
+---
+
+### 6. Get Top 5 Popular Blogs  
+**Endpoint:** GET /api/top-popular-blogs  
+**Description:** Fetches the top 5 blogs with the most likes.  
+**Headers:**  
+`Authorization: Bearer <jwt_token>`
+
+**Response:**
+- **200 OK**
+```json
+{
+  "statusText": "OK",
+  "msg": "Top 5 blogs fetched",
+  "blogs": [
+    {
+      "id": 10,
+      "title": "Trending Blog",
+      "like_count": 120
+    }
+  ]
+}
+```
+
+---
+
+### 7. Get All Blogs with Metadata  
+**Endpoint:** GET /api/all-blogs-with-meta  
+**Description:** Retrieves all blogs including metadata for likes and comments.  
+**Headers:**  
+`Authorization: Bearer <jwt_token>`
+
+**Response:**
+- **200 OK**
+```json
+{
+  "statusText": "OK",
+  "msg": "All blogs with metadata",
+  "blogs": [
+    {
+      "id": 2,
+      "title": "Deep Dive",
+      "likes": 33,
+      "comments": 5
+    }
+  ]
 }
 ```
 ---
+
 ### 5.1 Backend Testing:
 
-#### Blog_test:
-In addition to blog listing, Sprint 3 added full unit test coverage for all CRUD operations and blog fetching. Redis caching integration was also validated through clean state setup between tests.
+#### comment_test:
+Sprint 4 introduced extensive test coverage for the comment feature, validating both the posting and retrieval of comments associated with blog posts.
 
 #### New Test Cases:
 
 | **Test Case** | **Description** |
 |--------------|----------------|
-| **TestBlogCreateSuccess** | Ensures a blog post can be created successfully with proper data and timestamps. |
-| **TestBlogCreateUnauthorized** | Verifies that users without authentication cannot create blogs. |
-| **TestBlogCreateInvalidInput** | Validates server response to malformed or incomplete input. |
-| **TestBlogCreateUserNotFound** | Ensures blog creation fails if the user context is missing in DB. |
-| **TestBlogUpdateSuccess** | Tests that users can update blog content and timestamps correctly. |
-| **TestBlogUpdateNonExistent** | Ensures update request to non-existent blog returns correct error. |
-| **TestBlogUpdateInvalidInput** | Validates behavior for malformed JSON during update. |
-| **TestBlogUpdateOtherUserBlog** | Ensures one user cannot update another user’s blog. |
-| **TestBlogDeleteSuccess** | Confirms that blogs can be deleted and are removed from DB. |
-| **TestBlogDeleteNonExistent** | Ensures deletion of non-existent blog returns appropriate error. |
-| **TestBlogDeleteOtherUserBlog** | Verifies that users cannot delete blogs owned by others. |
-| **TestBlogDeleteUnauthorized** | Ensures unauthorized users cannot delete blogs. |
-| **TestBlogFetchSuccess** | Tests successful retrieval of a specific blog post. |
-| **TestBlogFetchUnauthorized** | Ensures unauthenticated requests cannot access individual blogs. |
-| **TestBlogFetchNonExistent** | Confirms correct error is returned for non-existent blog ID. |
-| **TestBlogFetchOtherUserBlog** | Validates that users cannot fetch blogs owned by others. |
-| **TestBlogFetchUserNotFound** | Ensures error handling when blog's owner doesn't exist. |
-| **TestBlogFetchMissingIDParam** | Tests error message when blog ID is not provided in request. |
-| **TestBlogListWithTitleFilter** | Tests blog list filtering using partial title match. |
+| **TestAddCommentSuccess** | Ensures a valid comment is successfully posted to a blog. |
+| **TestAddCommentInvalidInput** | Checks that malformed JSON results in a 400 Bad Request. |
+| **TestAddCommentMissingFields** | Verifies behavior when required fields are missing; validates fallback behavior. |
+| **TestGetCommentsByBlogIDWithComments** | Confirms correct retrieval of all comments for a blog with existing data. |
+| **TestGetCommentsByBlogIDNoComments** | Ensures an empty list is returned when no comments exist. |
+| **TestGetCommentsByNonExistentBlogID** | Confirms graceful handling of requests for blogs that don’t exist. |
 
-These cases validate edge conditions and access control thoroughly. Redis was reset between each test to validate caching isolation.
+These tests verify the robustness of the comments feature, including validation, persistence, and query accuracy.
 
 ---
 
-#### Users_test:
-Sprint 3 extended test coverage in `users_test.go` to validate the forgot password flow using reset code requests, verification, and secure password updates.
+#### like_test:
+Sprint 4 also added a suite of tests to validate like functionality, covering both expected behavior and edge cases such as duplicates and invalid references.
 
 #### New Test Cases:
 
 | **Test Case** | **Description** |
 |--------------|----------------|
-| **TestRequestResetCodeUserNotFound** | Ensures that password reset requests fail for unregistered users. |
-| **TestRequestResetCodeInvalidJSON** | Verifies that invalid JSON bodies are rejected appropriately. |
-| **TestVerifyResetCodeSuccess** | Tests full verification of a valid code and code removal after success. |
-| **TestVerifyResetCodeInvalid** | Checks behavior when an incorrect reset code is provided. |
-| **TestVerifyResetCodeExpired** | Simulates expired codes and ensures they are rejected. |
-| **TestVerifyResetCodeUserNotFound** | Ensures invalid email leads to proper error in verification. |
-| **TestVerifyResetCodeInvalidJSON** | Verifies error response on malformed input for code verification. |
-| **TestResetPasswordSuccess** | Ensures that user password can be securely reset. |
-| **TestResetPasswordUserNotFound** | Ensures reset fails for unregistered users. |
-| **TestResetPasswordInvalidJSON** | Validates server response to malformed JSON. |
-| **TestResetPasswordFlow** | Simulates end-to-end password reset: request → verify → reset → login with new password. |
+| **Successfully like a blog** | Validates that a blog can be liked by a user successfully. |
+| **Try to like blog that doesn't exist** | Confirms that liking a non-existent blog returns 404 Not Found. |
+| **Try to like a blog twice** | Ensures duplicate likes by the same user are prevented. |
+| **Get likes count for blog with no likes** | Confirms that 0 is returned for blogs with no likes. |
+| **Get likes count for blog with likes** | Validates that the correct number of likes is returned. |
+| **Get likes for non-existent blog** | Confirms no error and returns 0 likes when the blog ID doesn’t exist. |
+| **User not found test** | Tests behavior when the user email is not found in the system. |
 
-These tests ensure secure handling of reset flows, edge cases, and email-based verification.
-All tests were performed using in-memory SQLite DB and isolated app instances. Redis was used to test caching behavior clean-up during blog retrieval scenarios.
-___
+These cases ensure the correctness, security, and idempotency of the like mechanism.
+
+---
+
+All tests were executed using an in-memory SQLite database to ensure isolation and repeatability. The mock user authentication context and blog setup allowed validation of both typical and edge-case behaviors.
+
 
 ### 5.2 Frontend Testing:
 
@@ -400,44 +360,49 @@ These tests ensure new frontend functionality is thoroughly tested and error-res
 ---
 
 ## 6. Challenges Faced
-- Database schema adjustments to accommodate additional fields.
-- Ensuring secure handling of password reset flow and token expiration.
-- Coordinating JWT-based route protections across new endpoints.
-- Managing sync between frontend state and backend updates.
-- Resolving merge conflicts due to parallel feature development.
-- Integrating Redis for session management and caching to improve performance, while ensuring proper synchronization between cache and database updates
+- Designing and integrating a scalable schema for the new `likes` and `comments` tables without affecting existing blog functionality.
+- Ensuring idempotent handling of likes to prevent duplicate entries.
+- Managing comment validation and error handling for malformed or incomplete submissions.
+- Testing new endpoints involving relational data with isolated in-memory databases.
+- Maintaining consistent authorization flow using JWT middleware across new APIs.
+- Synchronizing frontend UI states (likes/comments) with real-time backend responses.
+- Handling UI complexity for nested comment lists and like toggling.
+- Fine-tuning queries for fetching top blogs and blog metadata efficiently.
 
 ---
 
 ## 7. Lessons Learned
-- Email-based verification adds layers of complexity requiring better error handling.
-- Testing APIs early helped catch and fix issues faster.
-- Keeping consistent naming and response formats improves frontend integration.
-- Improved coordination between frontend and backend teams speeds up integration.
-- Writing test cases earlier helps catch errors before deployment.
-- Implementing Redis introduced the need for careful monitoring and optimization of cache usage
+- Validating and structuring user interaction data (likes/comments) requires clear backend rules to avoid duplication or invalid entries.
+- Writing unit tests alongside API development helped maintain high reliability and catch edge-case bugs early.
+- Coordinated API structure and naming across backend and frontend improved integration speed.
+- UI logic for interactive components is easier to manage when tied directly to backend response state.
+- Modularizing tests and using a clear setup pattern for in-memory SQLite databases made testing faster and more maintainable.
+- Real-time metadata (likes/comments) should be handled cautiously to avoid race conditions in concurrent environments.
 
 ---
 
 ## 8. Sprint Retrospective
+
 ### What Went Well:
-- Successfully completed full CRUD backend for blogs.
-- Redis caching was successfully integrated, significantly reducing response times and enhancing performance for frequently accessed data.
-- Robust password reset flow implemented securely.
-- Profile page well integrated with backend.
-- Effective use of version control and issue tracking.
+- Successfully implemented comments and likes with clean API design and robust validation.
+- Metadata APIs and top blog fetching worked efficiently and were well-integrated into the frontend.
+- UI responsiveness improved significantly with real-time updates for likes/comments.
+- Unit and E2E test coverage increased, helping catch bugs early.
+- Frontend and backend teams worked in close coordination for final integration.
 
 ### What Could Be Improved:
-- Automate email testing using local SMTP mocking.
-- Add blog filtering/sorting on frontend for better UX.
-- More comprehensive UI testing with diverse user scenarios.
-- Reducing manual testing effort by automating API tests.
-- Optimizate Cache Key and Implement fallback mechanism for Cache Failures
+- Refactor comment and like logic for better reusability in future features like notifications.
+- Automate API contract validation between frontend and backend.
+- Improve test coverage for edge cases involving simultaneous like/comment operations.
+- Refine error messages for better frontend display.
+- Enhance performance of metadata aggregation queries for large-scale datasets.
 
 ---
 
 ## 9. Next Steps
-- Implement likes and comments functionality.
+- Implement user notifications for likes and replies.
 - Enhance user dashboard with additional profile features.
 - Improve search and filtering options for blog posts.
 - Optimizate Cache Key and Implement fallback mechanism for Cache Failures.
+- Explore real-time updates using WebSocket or polling for likes/comments.
+
