@@ -140,7 +140,9 @@ func BlogFetch(c *fiber.Ctx) error {
 	//cache miss
 	log.Println("Cache miss for ", cacheKey)
 
-	result = database.DBConn.Where("id = ? AND user_id = ?", blogID, user.ID).First(&blog)
+	//result = database.DBConn.Where("id = ? AND user_id = ?", blogID, user.ID).First(&blog)
+	// Sritha
+	result = database.DBConn.Where("id = ?", blogID).First(&blog)
 	if result.Error != nil {
 		log.Println("Blog not found")
 		context["statusText"] = "error"
@@ -187,6 +189,7 @@ func BlogCreate(c *fiber.Ctx) error {
 	}
 
 	blog.UserID = user.ID
+	blog.UserName = user.Username
 
 	result = database.DBConn.Create(&blog)
 	if result.Error != nil {
@@ -439,6 +442,7 @@ func AllBlogsWithMeta(c *fiber.Ctx) error {
 			Title:     blog.Title,
 			Post:      blog.Post,
 			UserID:    blog.UserID,
+			UserName:  blog.UserName,
 			CreatedAt: blog.CreatedAt,
 			UpdatedAt: blog.UpdatedAt,
 			Likes:     likeCount,
@@ -486,6 +490,7 @@ func Top5PopularBlogs(c *fiber.Ctx) error {
 			Title:     blog.Title,
 			Post:      blog.Post,
 			UserID:    blog.UserID,
+			UserName:  blog.UserName,
 			CreatedAt: blog.CreatedAt,
 			UpdatedAt: blog.UpdatedAt,
 			Likes:     res.Count,

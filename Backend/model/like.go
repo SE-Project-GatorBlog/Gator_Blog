@@ -1,3 +1,5 @@
+//like.go
+
 package model
 
 import "time"

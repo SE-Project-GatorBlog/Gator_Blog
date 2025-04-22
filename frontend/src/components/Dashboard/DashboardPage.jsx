@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import blogService from '../../utils/blogService';
-import ImprovedLikeButton from '../Likes/LikeButton';
 import gatorImage from '../../assets/images/DashboardGator.png';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { logout, user } = useAuth();
+  const { logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -16,85 +14,96 @@ const Dashboard = () => {
   const location = useLocation();
   const [deleteConfirmation, setDeleteConfirmation] = useState({ show: false, postId: null });
   
+  const { user } = useAuth();
+  const [userData, setUserData] = useState({
+    username: 'Loading...'
+  });
+
   const fetchPosts = useCallback(async (titleFilter = '') => {
     setIsLoading(true);
     try {
       console.log(`Fetching posts with title filter: "${titleFilter}"`);
       
-      // Use the existing getAllBlogs function which works
-      const data = await blogService.getAllBlogs(titleFilter);
-      console.log(`Received ${data.blogs ? data.blogs.length : 0} posts from API`);
+      // Use the improved getBlogsWithMeta function from blogService
+      const data = await blogService.getBlogsWithMeta(titleFilter);
       
-      // Process blog data
-      const formattedPosts = data.blogs ? data.blogs.map(blog => ({
-        id: blog.ID || blog.id,
-        username: blog.Author || 'Anonymous User',
-        date: new Date(blog.created_at || blog.CreatedAt).toLocaleString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        }),
-        updatedDate: new Date(blog.updated_at || blog.UpdatedAt).toLocaleString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        }),
-        title: blog.Title,
-        content: blog.Post,
-        likes: 0, // Initialize with 0, will be updated
-        comments: 0, // Initialize with 0, will be updated
-        createdAt: blog.created_at || blog.CreatedAt,
-        updatedAt: blog.updated_at || blog.UpdatedAt,
-        authorId: blog.user_id || blog.AuthorID,
-        isLiked: false // Will be updated later
-      })) : [];
-      
-      // Sort posts by creation date (newest first)
-      formattedPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      
-      // For each post, fetch likes and comments counts
-      if (formattedPosts.length > 0) {
-        console.log(`Fetching likes and comments for ${formattedPosts.length} posts`);
-        
-        await Promise.all(formattedPosts.map(async (post) => {
-          try {
-            // Fetch likes for this post
-            console.log(`Fetching likes for post ${post.id}`);
-            const likes = await blogService.getLikes(post.id);
-            console.log(`Received ${likes.length} likes for post ${post.id}`);
-            post.likes = likes.length || 0;
-            
-            // Check if the current user has liked this post
-            if (user) {
-              post.isLiked = likes.some(like => Number(like.user_id) === Number(user.id));
-              console.log(`User ${user.id} has ${post.isLiked ? 'liked' : 'not liked'} post ${post.id}`);
-            }
-            
-            // Fetch comments for this post
-            console.log(`Fetching comments for post ${post.id}`);
-            const comments = await blogService.getComments(post.id);
-            console.log(`Received ${comments.length} comments for post ${post.id}`);
-            post.comments = comments.length || 0;
-          } catch (err) {
-            console.error(`Error fetching interaction data for post ${post.id}:`, err);
-            // Don't let errors with individual posts break the entire dashboard
-          }
-        }));
+      if (data.statusText !== 'OK') {
+        throw new Error(data.msg || 'Failed to fetch posts');
       }
       
+      console.log(`Received ${data.blogs ? data.blogs.length : 0} posts from API`);
+
+      // Process blog data with the new format
+      const formattedPosts = data.blogs ? data.blogs.map(blog => {
+        // Format dates properly
+        const created = formatDate(blog.created_at);
+        const updated = formatDate(blog.updated_at);
+        
+        // Get likes count and comments count
+        let likesCount = blog.likes || 0;
+        
+        // Format comments correctly if available
+        if (blog.comments && Array.isArray(blog.comments)) {
+          const commentsCount = blog.comments.length;
+          
+          return {
+            id: blog.id,
+            username: blog.user_name || getUsernameForPost(blog.user_id),
+            date: created,
+            updatedDate: updated,
+            title: blog.title || 'Untitled Post',
+            content: blog.post || '',
+            likes: likesCount,
+            comments: commentsCount,
+            createdAt: blog.created_at,
+            updatedAt: blog.updated_at,
+            authorId: blog.user_id
+          };
+        }
+      }) : [];
+      
+      // Filter out null values and sort by creation date (newest first)
+      const filteredPosts = formattedPosts.filter(post => post !== undefined);
+      filteredPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      
       console.log('Finished processing all posts, setting state');
-      setPosts(formattedPosts);
+      setPosts(filteredPosts);
     } catch (err) {
       console.error('Error fetching posts:', err);
-      setError('Failed to load posts. Please try again later.');
+      setError(`Failed to load posts: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
   }, [user]);
+
+  // Helper function to get username for a post based on user ID
+  const getUsernameForPost = (userId) => {
+    if (user) {
+      const username = user.username || user.name || (user.data && user.data.username);
+      return username;
+    }
+    return 'Anonymous';
+  };
+  
+  // Helper function to format dates
+  const formatDate = (dateString) => {
+    if (!dateString || dateString === '0001-01-01T00:00:00Z') {
+      return 'Unknown date';
+    }
+    
+    try {
+      return new Date(dateString).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      console.error('Error formatting date:', e);
+      return 'Invalid date';
+    }
+  };
 
   useEffect(() => {
     // Fetch posts when component mounts
@@ -102,8 +111,11 @@ const Dashboard = () => {
   }, [fetchPosts]);
 
   useEffect(() => {
-    fetchPosts();
-  }, [location.pathname]); // triggers every time route changes  
+    // Refetch when route changes
+    if (location.pathname === '/dashboard') {
+      fetchPosts();
+    }
+  }, [location.pathname, fetchPosts]);
 
   const handleLogout = () => {
     logout();
@@ -120,7 +132,8 @@ const Dashboard = () => {
   };
 
   // Only allow editing if the user is the author of the post
-  const handleEditPost = (postId, authorId) => {
+  const handleEditPost = (postId, authorId, e) => {
+    e.stopPropagation(); // Prevent triggering the parent onClick
     if (user && user.id === authorId) {
       navigate(`/edit-post/${postId}`);
     } else {
@@ -129,7 +142,8 @@ const Dashboard = () => {
   };
   
   // Only allow deletion if the user is the author of the post
-  const handleDeleteClick = (postId, authorId) => {
+  const handleDeleteClick = (postId, authorId, e) => {
+    e.stopPropagation(); // Prevent triggering the parent onClick
     if (user && user.id === authorId) {
       setDeleteConfirmation({ show: true, postId });
     } else {
@@ -157,28 +171,11 @@ const Dashboard = () => {
       alert('Failed to delete post. Please try again.');
     }
   };
-  
-  // Function to handle like updates from ImprovedLikeButton component
-  const handleLikeUpdate = (postId, isLiked, newCount) => {
-    setPosts(posts.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          isLiked: isLiked,
-          likes: newCount !== undefined ? newCount : (isLiked ? post.likes + 1 : Math.max(0, post.likes - 1))
-        };
-      }
-      return post;
-    }));
-  };
 
-  // Function to safely render HTML content
-  const createMarkup = (htmlContent) => {
-    return { __html: htmlContent };
-  };
-  
   // Function to create a text preview without HTML tags
   const createPreview = (htmlContent, maxLength = 150) => {
+    if (!htmlContent) return '';
+    
     // Create a temporary div to strip HTML tags
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = htmlContent;
@@ -340,72 +337,69 @@ const Dashboard = () => {
             </div>
           ) : (
             posts.map((post) => (
-            <div 
-              key={post.id} 
-              className="bg-white/90 rounded-lg p-6 shadow-md cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => navigate(`/post/${post.id}`)}>
-              <div className="post-content">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 bg-blue-800 rounded-full"></div>
-                  <span className="font-medium">{post.username}</span>
-                  <div className="flex flex-col">
-                    <span className="text-gray-500 text-sm">Created: {post.date}</span>
-                    {post.date !== post.updatedDate && 
-                      <span className="text-gray-500 text-sm">Updated: {post.updatedDate}</span>
-                    }
+              <div 
+                key={post.id} 
+                className="bg-white/90 rounded-lg p-6 shadow-md cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => navigate(`/post/${post.id}`)}
+              >
+                <div className="post-content">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-8 h-8 bg-blue-800 rounded-full"></div>
+                    <span className="font-medium">{post.username}</span>
+                    <div className="flex flex-col">
+                      <span className="text-gray-500 text-sm">Created: {post.date}</span>
+                      {post.date !== post.updatedDate && post.updatedDate !== 'Unknown date' && 
+                        <span className="text-gray-500 text-sm">Updated: {post.updatedDate}</span>
+                      }
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-xl font-bold mb-1">{post.title}</h3>
+                  <div className="text-gray-700 mb-4 border-b border-gray-200 pb-4 line-clamp-3">
+                    {createPreview(post.content)}
                   </div>
                 </div>
                 
-                <h3 className="text-xl font-bold mb-1">{post.title}</h3>
-                <div className="text-gray-700 mb-4 border-b border-gray-200 pb-4 line-clamp-3">
-                  {createPreview(post.content)}
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-4">
+                    {/* Like count indicator (non-clickable) */}
+                    <div className="bg-gray-200 px-3 py-1 rounded-full text-sm flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                      </svg>
+                      {post.likes}
+                    </div>
+                    
+                    {/* Comment count indicator */}
+                    <div className="bg-gray-200 px-3 py-1 rounded-full text-sm flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" />
+                      </svg>
+                      {post.comments}
+                    </div>
+                  </div>
+                  
+                  {/* Edit and Delete Buttons - only shown if user is the author */}
+                  {user && user.id === post.authorId && (
+                    <div className="flex space-x-2">
+                      <button 
+                        className="bg-[#0021A5] text-white px-4 py-1 rounded-lg text-sm hover:bg-[#001B8C]"
+                        onClick={(e) => handleEditPost(post.id, post.authorId, e)}
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        className="bg-red-600 text-white px-4 py-1 rounded-lg text-sm hover:bg-red-700"
+                        onClick={(e) => handleDeleteClick(post.id, post.authorId, e)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex gap-4">
-                  {/* Use the ImprovedLikeButton component instead of a custom button */}
-                  <ImprovedLikeButton 
-                    postId={post.id}
-                    initialLikeCount={post.likes}
-                    initialIsLiked={post.isLiked}
-                    size="medium"
-                    onLikeUpdate={handleLikeUpdate}
-                  />
-                  <div className="bg-gray-200 px-3 py-1 rounded-full text-sm flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" />
-                    </svg>
-                    {post.comments}
-                  </div>
-                </div>
-                
-                {/* Edit and Delete Buttons - only shown if user is the author */}
-                {user && user.id === post.authorId && (
-                  <div className="flex space-x-2">
-                    <button 
-                      className="bg-[#0021A5] text-white px-4 py-1 rounded-lg text-sm hover:bg-[#001B8C]"
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent triggering the parent onClick
-                        handleEditPost(post.id, post.authorId);
-                      }}
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      className="bg-red-600 text-white px-4 py-1 rounded-lg text-sm hover:bg-red-700"
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent triggering the parent onClick
-                        handleDeleteClick(post.id, post.authorId);
-                      }}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )))}
+            ))
+          )}
         </div>
       </div>
     </div>

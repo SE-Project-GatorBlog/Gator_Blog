@@ -71,9 +71,15 @@ func SignIn(c *fiber.Ctx) error {
 		context["msg"] = "Error generating token"
 		return c.JSON(context)
 	}
-
+	println()
 	context["msg"] = "Login successful"
 	context["token"] = token
+
+	// new change Sritha - start
+	context["username"] = existingUser.Username
+	context["email"] = existingUser.Email
+	// new change Sritha - end
+
 	c.Status(200)
 	return c.JSON(context)
 }

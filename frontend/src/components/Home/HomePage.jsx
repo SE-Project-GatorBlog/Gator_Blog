@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import gatorImage from '../../assets/images/Home_Gator.png';
 import gatorImage1 from '../../assets/images/Gator1.png';
@@ -6,12 +6,151 @@ import gatorImage2 from '../../assets/images/Gator2.png';
 import gatorImage3 from '../../assets/images/Gator3.png';
 import gatorImage4 from '../../assets/images/Gator4.png';
 import gatorImage5 from '../../assets/images/Gator5.png';
+import blogService from '../../utils/blogService';
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const [posts, setPosts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch posts when component mounts
+  useEffect(() => {
+    const fetchPosts = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch all posts
+        const response = await blogService.getAllBlogs();
+        
+        if (response && response.blogs) {
+          // Get the available posts
+          const availablePosts = response.blogs;
+          
+          // Create an array to hold our posts (real + fallback)
+          let displayPosts = [];
+          
+          // Format the available posts
+          if (availablePosts.length > 0) {
+            const formattedPosts = availablePosts.map(post => ({
+              id: post.ID || post.id,
+              title: post.Title || post.title || 'Untitled Post',
+              content: post.Post || post.post || 'No content available',
+              author: post.user_name || 'Gator Blogger',
+              createdAt: new Date(post.CreatedAt || post.created_at).toLocaleDateString()
+            }));
+            
+            // Add the available posts to our display posts
+            displayPosts = [...formattedPosts];
+          }
+          
+          // If we have fewer than 3 posts, add placeholder posts
+          const fallbackPosts = [
+            {
+              id: 'fallback-1',
+              title: 'Welcome to GatorBlog!',
+              content: 'This is a platform for UF students to share their thoughts, ideas, and experiences. Start writing today!',
+              author: 'Gator Admin',
+              createdAt: new Date().toLocaleDateString()
+            },
+            {
+              id: 'fallback-2',
+              title: 'How to Get Started with Blogging',
+              content: 'Writing your first blog post can be intimidating. Here are some tips to help you get started on your blogging journey.',
+              author: 'Gator Admin',
+              createdAt: new Date().toLocaleDateString()
+            },
+            {
+              id: 'fallback-3',
+              title: 'The Benefits of Sharing Your Knowledge',
+              content: 'Blogging is not just about writing; it is about connecting with others and sharing your unique perspective with the world.',
+              author: 'Gator Admin',
+              createdAt: new Date().toLocaleDateString()
+            }
+          ];
+          
+          // Fill in with fallback posts if needed
+          while (displayPosts.length < 3) {
+            const nextFallbackIndex = displayPosts.length;
+            if (nextFallbackIndex < fallbackPosts.length) {
+              displayPosts.push(fallbackPosts[nextFallbackIndex]);
+            } else {
+              break; // Just in case
+            }
+          }
+          
+          // Limit to 3 posts
+          displayPosts = displayPosts.slice(0, 3);
+          
+          setPosts(displayPosts);
+        }
+      } catch (err) {
+        console.error('Error fetching posts:', err);
+        // Even if there's an error, we'll show placeholder posts
+        const errorFallbackPosts = [
+          {
+            id: 'fallback-1',
+            title: 'Welcome to GatorBlog!',
+            content: 'This is a platform for UF students to share their thoughts, ideas, and experiences. Start writing today!',
+            author: 'Gator Admin',
+            createdAt: new Date().toLocaleDateString()
+          },
+          {
+            id: 'fallback-2',
+            title: 'How to Get Started with Blogging',
+            content: 'Writing your first blog post can be intimidating. Here are some tips to help you get started on your blogging journey.',
+            author: 'Gator Admin',
+            createdAt: new Date().toLocaleDateString()
+          },
+          {
+            id: 'fallback-3',
+            title: 'The Benefits of Sharing Your Knowledge',
+            content: 'Blogging is not just about writing; it is about connecting with others and sharing your unique perspective with the world.',
+            author: 'Gator Admin',
+            createdAt: new Date().toLocaleDateString()
+          }
+        ];
+        setPosts(errorFallbackPosts);
+        setError('Failed to load posts. Showing sample content instead.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchPosts();
+  }, []);
+
+  // Create a preview of the content without HTML tags
+  const createPreview = (htmlContent, maxLength = 100) => {
+    if (!htmlContent) return '';
+    
+    // Create a temporary div to strip HTML tags
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    const textContent = tempDiv.textContent || tempDiv.innerText || '';
+    
+    // Truncate the text to maxLength
+    if (textContent.length <= maxLength) {
+      return textContent;
+    }
+    
+    // Find the last space before maxLength
+    const lastSpace = textContent.substring(0, maxLength).lastIndexOf(' ');
+    const truncatedText = textContent.substring(0, lastSpace > 0 ? lastSpace : maxLength);
+    
+    return `${truncatedText}...`;
+  };
 
   const handleStartBlogging = () => {
     navigate('/login');
+  };
+
+  const handleViewPost = (postId) => {
+    // If it's a fallback post, navigate to new post creation
+    if (postId.startsWith('fallback-')) {
+      navigate('/login');
+      return;
+    }
+    navigate(`/post/${postId}`);
   };
 
   return (
@@ -66,8 +205,30 @@ const HomePage = () => {
         </div>
 
         <div className="bg-white/20 backdrop-blur-sm rounded-lg p-8">
-          <h2 className="text-3xl font-bold text-black mb-6">Our Popular Posts</h2>
-          <div className="h-48 bg-white/20 rounded-lg"></div>
+          <h2 className="text-3xl font-bold text-black mb-6">Featured Posts</h2>
+          
+          {isLoading ? (
+            <div className="h-48 bg-white/20 rounded-lg flex items-center justify-center">
+              <div className="text-white">Loading posts...</div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {posts.map((post) => (
+                <div 
+                  key={post.id} 
+                  className="bg-white/90 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                  onClick={() => handleViewPost(post.id)}
+                >
+                  <h3 className="text-xl font-bold mb-2 text-[#0021A5] line-clamp-2">{post.title}</h3>
+                  <p className="text-gray-700 mb-3 line-clamp-3">{createPreview(post.content)}</p>
+                  <div className="flex justify-between items-center text-sm text-gray-600">
+                    <span>By {post.author}</span>
+                    <span>{post.createdAt}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="bg-white/20 backdrop-blur-sm rounded-lg p-8">
