@@ -18,9 +18,10 @@ The goal of Sprint 4 was to finalize the Gator Blog platform by implementing int
 
 ## 2. Visual Demo Links
 
-- [Backend Part 1](https://youtu.be/yEusJjwBfcg)
-- [Backend Part 2](https://youtu.be/9FZ-9FlxOgM)
-- [Frontend](https://drive.google.com/file/d/15_PIRpPU7T85ykLGW5ITeUEGOjsNH4XP/view?usp=share_link)
+- [Backend Sprint 4](https://www.youtube.com/watch?v=HepnACzQ-Rc)
+- [Frontend Sprint 4](https://drive.google.com/drive/folders/1W1WqkUVBYRwuj9ZRESUNPuNTbkZoIFwT?usp=share_link)
+- [Backend Overall Functionality Demo](https://youtu.be/WmV632xDohA)
+- [Frontend Overall Functionality Demo](https://drive.google.com/drive/folders/1W1WqkUVBYRwuj9ZRESUNPuNTbkZoIFwT?usp=share_link)
 - Link to the Repository: https://github.com/SE-Project-GatorBlog/Gator_Blog/
 
 ---
