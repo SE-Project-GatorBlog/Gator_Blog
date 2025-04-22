@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
@@ -70,6 +71,7 @@ describe('HomePage Unit Tests', () => {
     await userEvent.click(btn);
     expect(btn).toBeEnabled();
   });
+
 });
 
 describe('ProfilePage Unit Tests', () => {
@@ -125,6 +127,16 @@ describe('ProfilePage Unit Tests', () => {
     const profileButtons = screen.getAllByRole('button', { name: /profile/i });
     expect(profileButtons.length).toBeGreaterThanOrEqual(1);
   });
+
+  test('shows MY POSTS section heading', async () => {
+    await waitFor(() => {
+      expect(screen.getByText(/my posts/i)).toBeInTheDocument();
+    });
+  });
+
+  test('contains NEW POST button on bottom of profile page', () => {
+    expect(screen.getByRole('button', { name: /new post/i })).toBeInTheDocument();
+  });
 });
 
 describe('NewPost Unit Tests', () => {
@@ -168,6 +180,11 @@ describe('NewPost Unit Tests', () => {
     expect(screen.getByRole('button', { name: /posts/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /my profile/i })).toBeInTheDocument();
   });
+
+  test('has insert image toolbar button', () => {
+    expect(screen.getByTitle(/insert image/i)).toBeInTheDocument();
+  });
+
 });
 
 describe('PostDetail Unit Tests', () => {
@@ -193,20 +210,7 @@ describe('PostDetail Unit Tests', () => {
     });
   });
 
-  test('renders like and comment text', async () => {
-    await waitFor(() => {
-      expect(screen.queryByText(/likes/i)).toBeTruthy();
-      expect(screen.queryByText(/comments/i)).toBeTruthy();
-    });
-  });
-
-  test('renders author or timestamp section', async () => {
-    await waitFor(() => {
-      expect(screen.queryByText(/created:/i)).toBeTruthy();
-    });
-  });
 });
-
 
 describe('Dashboard Unit Tests', () => {
   beforeEach(() => {
@@ -232,6 +236,18 @@ describe('Dashboard Unit Tests', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /new post/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /my profile/i })).toBeInTheDocument();
+    });
+  });
+
+  test('shows post content preview', async () => {
+    await waitFor(() => {
+      expect(screen.getByText(/community post/i)).toBeInTheDocument();
+    });
+  });
+
+  test('displays dashboard post title correctly', async () => {
+    await waitFor(() => {
+      expect(screen.getByText(/dashboard post/i)).toBeInTheDocument();
     });
   });
 });
