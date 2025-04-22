@@ -10,6 +10,7 @@ type BlogWithMeta struct {
 	Title     string          `json:"title"`
 	Post      string          `json:"post"`
 	UserID    uint            `json:"user_id"`
+	UserName  string          `json:"user_name"`
 	CreatedAt time.Time       `json:"created_at"`
 	UpdatedAt time.Time       `json:"updated_at"`
 	Likes     int64           `json:"likes"`

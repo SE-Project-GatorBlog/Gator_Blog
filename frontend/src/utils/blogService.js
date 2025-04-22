@@ -3,6 +3,59 @@ import api from './api';
 const BASE_URL = 'http://localhost:8000/api';
 
 const blogService = {
+  // Improved function to fetch all blogs with metadata in a single request
+  getBlogsWithMeta: async (titleFilter = '') => {
+    try {
+      // Construct URL with optional title filter
+      const url = `${BASE_URL}/all-blogs-with-meta${titleFilter ? `?title=${encodeURIComponent(titleFilter)}` : ''}`;
+      
+      // Get authentication token
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Authentication token not found. Please log in again.');
+      }
+      
+      // Use fetch directly for more control
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      // Handle non-OK responses
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Error response from API (${response.status}):`, errorText);
+        
+        let errorMessage;
+        try {
+          // Try to parse as JSON
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.msg || `Failed to fetch blogs with meta (Status: ${response.status})`;
+        } catch (e) {
+          // If not valid JSON, use the text directly
+          errorMessage = errorText || `Error ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      // Parse the response
+      const data = await response.json();
+      console.log('Blogs with meta data received:', data);
+      
+      if (!data || !Array.isArray(data.blogs)) {
+        console.warn('Unexpected response format from blogs-with-meta:', data);
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Error in getBlogsWithMeta:', error);
+      throw error;
+    }
+  },
+
   // Original methods remain unchanged
   getAllBlogs: async (titleFilter = '') => {
     try {
@@ -257,18 +310,24 @@ const blogService = {
       }
       
       const data = await response.json();
-      console.log("###");
-      console.log(data.likes);
-      //const data = response.json();
-      console.log(`Fetched ${data.likes} likes for post ${blogId}:`, data);
-      return Array.isArray(data) ? data : [data.likes];
+      console.log(`Fetched likes for post ${blogId}:`, data);
+      
+      // Handle different API response formats
+      if (Array.isArray(data)) {
+        return data;
+      } else if (data && typeof data.likes === 'number') {
+        // If the API just returns a count, create an array of that length
+        return Array(data.likes).fill({});
+      } else {
+        return [];
+      }
     } catch (error) {
       console.error("Error in getLikes:", error);
       return [];
     }
   },
 
-  // Add a like to a blog post - FIXED WITH BETTER ERROR HANDLING
+  // Add a like to a blog post
   addLike: async (blogId) => {
     try {
       // Ensure blogId is valid
@@ -309,7 +368,7 @@ const blogService = {
     }
   },
 
-  // Remove a like from a blog post - FIXED
+  // Remove a like from a blog post
   removeLike: async (blogId) => {
     try {
       // Ensure blogId is valid

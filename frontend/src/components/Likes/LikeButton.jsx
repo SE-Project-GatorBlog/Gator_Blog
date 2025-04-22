@@ -4,25 +4,23 @@ import blogService from '../../utils/blogService';
 
 /**
  * A reusable Like Button component that handles the like/unlike functionality
- * consistently across the application.
+ * for the current user only.
  * 
  * @param {Object} props Component props
  * @param {string|number} props.postId The ID of the post to like/unlike
  * @param {number} props.initialLikeCount Initial count of likes for the post
- * @param {boolean} props.initialIsLiked Whether the current user has liked the post
  * @param {string} props.size Size variant of the button ('small', 'medium', 'large')
  * @param {Function} props.onLikeUpdate Callback function when like status changes
  * @returns {JSX.Element} Like button component
  */
-const ImprovedLikeButton = ({
+const LikeButton = ({
   postId,
   initialLikeCount = 0,
-  initialIsLiked = false,
   size = 'medium',
   onLikeUpdate
 }) => {
   const { user } = useAuth();
-  const [isLiked, setIsLiked] = useState(initialIsLiked);
+  const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(initialLikeCount);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -32,16 +30,9 @@ const ImprovedLikeButton = ({
     
     try {
       const likes = await blogService.getLikes(postId);
-      console.log("$$$");
-      console.log(likes);
       
       // Set the total likes count
-      console.log("post id = "+postId);
-      console.log("likes count = "+likes.length);
       setLikesCount(likes.length || 0);
-      if(likes.length > 0){
-        setIsLiked(true);
-      }
       
       // Check if current user has liked this post
       if (user && user.id) {
@@ -64,25 +55,27 @@ const ImprovedLikeButton = ({
   const handleLike = async (e) => {
     e.stopPropagation(); // Prevent click from bubbling up
     
-    // Exit early if no postId
+    // Exit early if no postId or no user
     if (!postId) {
       console.error('Cannot like post: No postId provided');
+      return;
+    }
+    
+    if (!user) {
+      alert('Please log in to like posts');
       return;
     }
     
     setIsSubmitting(true);
     
     try {
-      console.log(`Toggling like for post ${postId}, current status: ${isLiked ? 'liked' : 'not liked'}`);
-      
       if (isLiked) {
         // Unlike the post
         await blogService.removeLike(postId);
         setIsLiked(false);
         setLikesCount(prev => Math.max(0, prev - 1));
       } else {
-        // Like the post - make sure this goes through as a POST request
-        console.log('Sending POST request to add like');
+        // Like the post
         await blogService.addLike(postId);
         setIsLiked(true);
         setLikesCount(prev => prev + 1);
@@ -94,8 +87,6 @@ const ImprovedLikeButton = ({
       }
     } catch (err) {
       console.error(`Error toggling like:`, err);
-      // Show the complete error for debugging
-      console.error('Full error:', err);
       alert('Could not update like status. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -129,15 +120,13 @@ const ImprovedLikeButton = ({
   return (
     <button 
       onClick={handleLike}
-      disabled={isSubmitting}
+      disabled={isSubmitting || !user}
       className={`${sizeClasses.button} flex items-center ${
         isLiked 
         ? 'bg-blue-500 text-white' 
         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-      } ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+      } ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''} transition-colors duration-200`}
       aria-label={isLiked ? 'Unlike post' : 'Like post'}
-      data-liked={isLiked}
-      data-count={likesCount}
     >
       <svg 
         xmlns="http://www.w3.org/2000/svg" 
@@ -158,4 +147,4 @@ const ImprovedLikeButton = ({
   );
 };
 
-export default ImprovedLikeButton;
+export default LikeButton;

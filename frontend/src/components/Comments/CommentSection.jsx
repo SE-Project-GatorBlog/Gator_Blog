@@ -40,16 +40,17 @@ const CommentSection = ({ postId }) => {
       const commentData = {
         content: newComment,
         user_id: user ? user.id : 0,
+        user_name: user ? user.username : 'Anonymous',
         blog_id: postId
       };
       
       const addedComment = await blogService.addComment(postId, commentData);
       
       // Add username to the new comment for display
-      const commentWithUser = {
-        ...addedComment,
-        username: user ? user.username : 'Anonymous'
-      };
+      // const commentWithUser = {
+      //   ...addedComment,
+      //   username: user ? user.username : 'Anonymous'
+      // };
       
       // Add the new comment to the comments array
       setComments(prev => [...prev, commentWithUser]);
@@ -142,7 +143,7 @@ const CommentSection = ({ postId }) => {
               <div className="w-10 h-10 bg-blue-800 rounded-full"></div>
               <div className="flex-1">
                 <div className="flex items-center mb-1">
-                  <h4 className="font-medium">{comment.username || 'Anonymous'}</h4>
+                  <h4 className="font-medium">{comment.user_name || 'Anonymous'}</h4>
                   <span className="text-gray-500 text-sm ml-2">
                     {formatDate(comment.created_at)}
                   </span>

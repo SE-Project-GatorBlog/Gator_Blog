@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import blogService from '../../utils/blogService';
-import defaultGatorImage from '../../assets/images/SignUp_Gator.png'; // Using existing gator image as default
+import defaultGatorImage from '../../assets/images/SignUp_Gator.png';
+import ProfileInfoDisplay from './ProfileInfoDisplay';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -271,27 +272,7 @@ const ProfilePage = () => {
 
           {/* Profile Info */}
           <div className="flex-1 w-full md:w-auto">
-            <div className="space-y-6">
-              <div className="flex flex-col space-y-4">
-                <div className="flex items-center">
-                  <div className="bg-[#6A7199]/70 text-white font-bold px-6 py-3 rounded-l-lg w-36 flex justify-center items-center">
-                    Username
-                  </div>
-                  <div className="bg-[#FFFFFF]/90 px-6 py-3 rounded-r-lg flex-1">
-                    {username}
-                  </div>
-                </div>
-                
-                <div className="flex items-center">
-                  <div className="bg-[#6A7199]/70 text-white font-bold px-6 py-3 rounded-l-lg w-36 flex justify-center items-center">
-                    Email ID
-                  </div>
-                  <div className="bg-[#FFFFFF]/90 px-6 py-3 rounded-r-lg flex-1">
-                    {emailId}
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ProfileInfoDisplay />
           </div>
         </div>
 

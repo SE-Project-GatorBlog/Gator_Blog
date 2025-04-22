@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import blogService from '../../utils/blogService';
-import ImprovedLikeButton from '../Likes/LikeButton';
+import LikeButton from '../Likes/LikeButton';
 
 const PostDetailPage = () => {
   const { id } = useParams();
@@ -13,55 +13,73 @@ const PostDetailPage = () => {
   const [error, setError] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
-  const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [commentsCount, setCommentsCount] = useState(0);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
-  const [isSubmittingLike, setIsSubmittingLike] = useState(false);
   
   useEffect(() => {
     const fetchPostData = async () => {
       setIsLoading(true);
       try {
         console.log(`Fetching post data for ID: ${id}`);
-        // First, try to get the specific blog post by ID
-        const response = await blogService.getBlogById(id);
         
-        if (response && response.blog) {
-          const blog = response.blog;
-          console.log("Received blog data:", blog);
+        // First, try to get the single blog with meta data
+        const response = await fetch(`http://localhost:8000/api/blog-with-meta/${id}`);
+        
+        if (!response.ok) {
+          // Fall back to the old endpoint if the new one doesn't exist
+          console.log('New endpoint unavailable, falling back to old method');
+          const oldResponse = await blogService.getBlogById(id);
           
-          // Format the post data
-          setPost({
-            id: blog.ID || blog.id,
-            username: blog.Author || 'Anonymous User',
-            date: new Date(blog.created_at || blog.CreatedAt).toLocaleString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            }),
-            updatedDate: new Date(blog.updated_at || blog.UpdatedAt).toLocaleString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            }),
-            title: blog.Title,
-            content: blog.Post,
-            authorId: blog.user_id || blog.AuthorID,
-            createdAt: blog.created_at || blog.CreatedAt,
-            updatedAt: blog.updated_at || blog.UpdatedAt
-          });
-          
-          // Fetch comments and likes separately
-          fetchComments(blog.ID || blog.id);
-          checkIfLiked(blog.ID || blog.id);
+          if (oldResponse && oldResponse.blog) {
+            handleOldApiResponse(oldResponse.blog);
+          } else {
+            setError(`Post with ID ${id} not found`);
+          }
         } else {
-          console.error("No blog data found in response", response);
-          setError(`Post with ID ${id} not found`);
+          // Handle the new API response
+          const data = await response.json();
+          console.log("Received blog data with meta:", data);
+          
+          if (data && data.blog) {
+            const blog = data.blog;
+            
+            // Format the post data
+            setPost({
+              id: blog.id,
+              username: blog.user_name || user.username || user.name || (user.data && user.data.username),
+              date: new Date(blog.created_at).toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              }),
+              updatedDate: new Date(blog.updated_at).toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              }),
+              title: blog.title,
+              content: blog.post,
+              authorId: blog.user_id || blog.author_id,
+              createdAt: blog.created_at,
+              updatedAt: blog.updated_at
+            });
+            
+            // Set comments directly from the response
+            if (blog.comments) {
+              setComments(blog.comments);
+              setCommentsCount(blog.comments.length);
+            }
+            
+            // Set likes count directly from the response
+            setLikesCount(blog.likes || 0);
+          } else {
+            setError(`Post with ID ${id} not found`);
+          }
         }
       } catch (err) {
         console.error('Error fetching post:', err);
@@ -72,9 +90,40 @@ const PostDetailPage = () => {
     };
     
     fetchPostData();
-  }, [id]);
+  }, [id, user]);
   
-  const fetchComments = async (blogId) => {
+  // Handler for old API response format
+  const handleOldApiResponse = async (blog) => {
+    setPost({
+      id: blog.ID || blog.id,
+      username: blog.user_name,
+      date: new Date(blog.created_at || blog.CreatedAt).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      updatedDate: new Date(blog.updated_at || blog.UpdatedAt).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      title: blog.Title,
+      content: blog.Post,
+      authorId: blog.user_id || blog.AuthorID,
+      createdAt: blog.created_at || blog.CreatedAt,
+      updatedAt: blog.updated_at || blog.UpdatedAt
+    });
+    
+    // Fetch comments and likes separately in the old way
+    await fetchCommentsOld(blog.ID || blog.id);
+    await fetchLikesCountOld(blog.ID || blog.id);
+  };
+  
+  const fetchCommentsOld = async (blogId) => {
     try {
       console.log(`Fetching comments for blog ID: ${blogId}`);
       const commentsData = await blogService.getComments(blogId);
@@ -88,55 +137,21 @@ const PostDetailPage = () => {
     }
   };
   
-  const checkIfLiked = async (blogId) => {
+  const fetchLikesCountOld = async (blogId) => {
     try {
-      console.log(`Checking like status for blog ID: ${blogId}`);
+      console.log(`Fetching likes for blog ID: ${blogId}`);
       const likes = await blogService.getLikes(blogId);
       console.log(`Received ${likes.length} likes:`, likes);
       
-      // Check if current user has liked this post (if user exists)
-      if (user) {
-        const userLiked = likes.some(like => like.user_id === user.id);
-        console.log(`User ${user.id} has ${userLiked ? 'liked' : 'not liked'} this post`);
-        setIsLiked(userLiked);
-      }
-      
       setLikesCount(likes.length || 0);
     } catch (err) {
-      console.error('Error checking like status:', err);
+      console.error('Error fetching likes:', err);
       // We don't set error state here to not disrupt the entire page
     }
   };
   
-  const handleLike = async () => {
-    if (!post) return;
-    
-    setIsSubmittingLike(true);
-    
-    try {
-      console.log(`[PostDetail] Toggling like for post ${post.id}, current status: ${isLiked ? 'liked' : 'not liked'}`);
-      
-      if (isLiked) {
-        // Unlike the post - API extracts necessary data from request
-        console.log(`[PostDetail] Removing like from post ${post.id}`);
-        await blogService.removeLike(post.id);
-        setIsLiked(false);
-        setLikesCount(prev => Math.max(0, prev - 1));
-        console.log(`[PostDetail] Like removed, new count: ${Math.max(0, likesCount - 1)}`);
-      } else {
-        // Like the post - API extracts necessary data from request
-        console.log(`[PostDetail] Adding like to post ${post.id}`);
-        await blogService.addLike(post.id);
-        setIsLiked(true);
-        setLikesCount(prev => prev + 1);
-        console.log(`[PostDetail] Like added, new count: ${likesCount + 1}`);
-      }
-    } catch (err) {
-      console.error('[PostDetail] Error toggling like:', err);
-      alert('Failed to update like status. Please try again.');
-    } finally {
-      setIsSubmittingLike(false);
-    }
+  const handleLikeUpdate = (postId, isLiked, newCount) => {
+    setLikesCount(newCount);
   };
   
   const handleComment = async (e) => {
@@ -153,6 +168,7 @@ const PostDetailPage = () => {
       const commentData = {
         content: newComment,
         user_id: user ? user.id : 0, // Use 0 or another default if no user
+        user_name: user ? user.username : 'Anonymous',
         blog_id: post.id
       };
       
@@ -160,11 +176,10 @@ const PostDetailPage = () => {
       const addedComment = await blogService.addComment(post.id, commentData);
       console.log('Added comment response:', addedComment);
       
-      // Add the new comment to the comments array
-      setComments(prev => [...prev, {
-        ...addedComment,
-        username: user ? user.username : 'Anonymous' // Use "Anonymous" if no user
-      }]);
+      // Add the new comment to the local comments array
+      if (addedComment) {
+        setComments(prevComments => [...prevComments, addedComment]);
+      }
       
       // Update the comment count
       setCommentsCount(prev => prev + 1);
@@ -292,16 +307,15 @@ const PostDetailPage = () => {
             </div>
             
             <div className="flex space-x-4">
-            <ImprovedLikeButton 
-              postId={post.id}
-              initialLikeCount={likesCount}
-              initialIsLiked={isLiked}
-              size="medium"
-              onLikeUpdate={(postId, updatedLiked, newCount) => {
-                setIsLiked(updatedLiked);
-                setLikesCount(newCount);
-              }}
-            />
+              {/* Fixed like button */}
+              <LikeButton 
+                postId={post.id}
+                initialLikeCount={likesCount}
+                size="medium"
+                onLikeUpdate={handleLikeUpdate}
+              />
+              
+              {/* Comments count indicator */}
               <div className="bg-gray-200 px-4 py-2 rounded-lg flex items-center text-gray-700">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" />
@@ -378,7 +392,7 @@ const PostDetailPage = () => {
                     <div className="w-10 h-10 bg-blue-800 rounded-full"></div>
                     <div className="flex-1">
                       <div className="flex items-center mb-1">
-                        <h4 className="font-medium">{comment.username || 'Anonymous'}</h4>
+                        <h4 className="font-medium">{comment.user_name || user.username || user.name || (user.data && user.data.username)}</h4>
                         <span className="text-gray-500 text-sm ml-2">
                           {formatDate(comment.created_at)}
                         </span>
