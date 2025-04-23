@@ -55,24 +55,6 @@ npm start
 
 ---
 
-## 🔐 User Authentication & Security
-
-- The `/signup` and `/signin` routes handle user registration and login.
-- Passwords are securely hashed using **bcrypt** before storage.
-- On successful login, a **JWT token** is generated and sent back to the user.
-- All sensitive blog-related routes are protected using middleware that verifies the JWT.
-- Auth Context in React to maintain user session and provide authentication status across components.
-
-#### Endpoints:
-```
-POST /api/signup  
-POST /api/signin  
-```
-
-- Forgot password functionality is handled via **email verification** and **code-based reset**.
-
----
-
 ## 📱 Frontend Features
 
 ### 🧩 Components Architecture
@@ -123,6 +105,24 @@ The frontend is built with a modular component architecture:
 - Local state for form management
 - API service utilities for data fetching
 - Error handling and loading states
+
+---
+
+## 🔐 User Authentication & Security
+
+- The `/signup` and `/signin` routes handle user registration and login.
+- Passwords are securely hashed using **bcrypt** before storage.
+- On successful login, a **JWT token** is generated and sent back to the user.
+- All sensitive blog-related routes are protected using middleware that verifies the JWT.
+- Auth Context in React to maintain user session and provide authentication status across components.
+
+#### Endpoints:
+```
+POST /api/signup  
+POST /api/signin  
+```
+
+- Forgot password functionality is handled via **email verification** and **code-based reset**.
 
 ---
 
@@ -234,6 +234,15 @@ Caching keys are used smartly to minimize DB queries.
 - Clean separation of logic via controller/model structure
 - RESTful route design that supports modular extension
 - Component-based architecture for UI reusability
+---
+
+## 📱 Responsive Design
+
+- Mobile-first approach
+- Tailwind CSS for responsive styling
+- Media queries for custom breakpoints
+- Optimized touch interactions for mobile users
+- Flexible layouts that adapt to different screen sizes
 
 ---
 
@@ -252,12 +261,4 @@ Caching keys are used smartly to minimize DB queries.
   - Search and filter capabilities
   - Responsive design
 
----
 
-## 📱 Responsive Design
-
-- Mobile-first approach
-- Tailwind CSS for responsive styling
-- Media queries for custom breakpoints
-- Optimized touch interactions for mobile users
-- Flexible layouts that adapt to different screen sizes
